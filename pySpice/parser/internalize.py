@@ -12,11 +12,12 @@ def internalize(node_dim):
 	of the MNA matrix(row 0/column 0 included)
 	"""
 
-	for item in ELEMENT_LIST.values():
+	for item in ELEMENT_DICT.values():
 		if item.branch_flag == 1:
 			item.branch = item.branch + node_dim
+			NODE_TRANSLATION[item.name] = item.branch
 			if item.catagory == 'h':
-				item.loc_ctrl_branch = item.loc_ctrl_branch + node_dim
+				item.loc_ctrl_branch = item.loc_ctrl_branch + node_dim		
 
 	for item in PRINT_DICT['dc']:
 		for num, point in enumerate(item.op_list):
@@ -36,4 +37,4 @@ def internalize(node_dim):
 		#TO DO
 		pass
 
-	#TO_DO TRANSLATION_DICT
+	

@@ -106,6 +106,7 @@ class analysis_dc():
 		self.swp_src = swp_src
 		self.generator = generator
 		self.double_scan_flag = 0
+		self.swp_src2 = ''
 		self.generator2 = 0 #run into this case from time to time, how to resolve?
 
 class analysis_ac():
@@ -122,6 +123,7 @@ class analysis_tran():
 		self.max_step = 0
 
 class print_item():
+	def __init__(self,cmd):
 		self.cmd = cmd
 		self.op_flag = 0
 		self.op_list = []

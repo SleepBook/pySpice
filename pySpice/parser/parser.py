@@ -1,7 +1,7 @@
-from pySpice.global_data import *
-from pySpice.parser.parseline import parseline
+import pySpice.global_data
+from pySpice.parser.parseline import *
 from pySpice.parser.internalize import internalize
-
+import pdb
 def parser(netlist):
 	"""Parse Spice Netlist
 
@@ -23,7 +23,7 @@ def parser(netlist):
 		if line.lower() == '.end':
 			break
 		else:
-			if line[0] == '*':
+			if line[0] == '*' or line == '\n':
 				continue
 			elif line[0] == '.':
 				parse_ctrl(line)
@@ -31,6 +31,9 @@ def parser(netlist):
 				node_dim, branch_dim = parse_element(line,node_dim,branch_dim)
 
 	internalize(node_dim)
+	pySpice.global_data.MNA_dim = node_dim + branch_dim -1
+	pdb.set_trace()
+	
 	
 
 

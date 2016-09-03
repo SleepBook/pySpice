@@ -2,6 +2,7 @@ from pySpice.global_data import *
 from pySpice.element_class import *
 from pySpice.parser.utils import *
 import re
+import pdb
 
 def parse_element(raw_line, node_dim, branch_dim):
 	'''docstring
@@ -17,7 +18,7 @@ def parse_element(raw_line, node_dim, branch_dim):
 		name = line[0]
 		catagory = 'r'
 		temp = ele_2port(catagory,name,loc_p,loc_n,value)
-		ELEMENT_LIST[name] = temp
+		ELEMENT_DICT[name] = temp
 
 	elif line[0][0] == 'e':
 		name = line[0]
@@ -32,7 +33,7 @@ def parse_element(raw_line, node_dim, branch_dim):
 		loc_ctrl_n, node_dim = address_transform(loc_ctrl_n, node_dim)
 		brch_num, branch_dim = address_transform(name, branch_dim)
 		temp = vcvs(loc_ctrl_p, loc_ctrl_n, brch_num, 'e', name, loc_p, loc_n, value)
-		ELEMENT_LIST[name] = temp
+		ELEMENT_DICT[name] = temp
 
 	elif line[0][0] == 'f':
 		name = line[0]
@@ -44,7 +45,7 @@ def parse_element(raw_line, node_dim, branch_dim):
 		loc_n, node_dim = address_transform(ext_n, node_dim)
 		loc_ctrl_brch, branch_dim = address_transform(ext_ctrl_name, branch_dim)
 		temp = cccs(loc_ctrl_brch, 'f', name, loc_p, loc_n, value)
-		ELEMENT_LIST[name] = temp
+		ELEMENT_DICT[name] = temp
 
 	elif line[0][0] == 'g':
 		name = line[0]
@@ -58,7 +59,7 @@ def parse_element(raw_line, node_dim, branch_dim):
 		loc_ctrl_p, node_dim = address_transform(ext_ctrl_p, node_dim)
 		loc_ctrl_n, node_dim = address_transform(ext_ctrl_n, node_dim)
 		temp = vccs(loc_ctrl_p, loc_ctrl_v, 'g', name, loc_p, loc_n, value)
-		ELEMENT_LIST[name] = temp
+		ELEMENT_DICT[name] = temp
 
 	elif line[0][0] == 'h':
 		name = line[0]
@@ -68,7 +69,7 @@ def parse_element(raw_line, node_dim, branch_dim):
 		value = extract(line[4])
 		loc_brch, branch_dim = address_transform(name, branch_dim)
 		temp = ccvs(loc_brch, loc_ctrl_brch, 'g', name, loc_p, loc_n, value)
-		ELEMENT_LIST[name] = temp
+		ELEMENT_DICT[name] = temp
 		
 	elif line[0][0] == 'c' or line[0][0] == 'l':
 		name = line[0]
@@ -84,7 +85,7 @@ def parse_element(raw_line, node_dim, branch_dim):
 		if (len(line) == 5 and line[4][1:3] == 'ic'):
 			temp.ic = (line[4].split('='))[1][:-1]
 			#current only support format like: IC=3v
-		ELEMENT_LIST[name] = temp
+		ELEMENT_DICT[name] = temp
 
 	elif line[0][0] == 'd':
 		name = line[0]
@@ -96,10 +97,10 @@ def parse_element(raw_line, node_dim, branch_dim):
 		if m != None:
 			ic = extract(m.group().split('=')[1])
 		temp.ic = ic
-		ELEMENT_LIST[name] = temp
+		ELEMENT_DICT[name] = temp
 
 	elif (line[0][0] == 'v' or line[0][0] == 'i'):
-		name = line[0][0]
+		name = line[0]
 		loc_p, node_dim = address_transform(line[1], node_dim)
 		loc_n, node_dim = address_transform(line[2], node_dim)
 		if name[0] == 'v':
@@ -129,7 +130,7 @@ def parse_element(raw_line, node_dim, branch_dim):
 				buf = raw_line.lower()[m.span()[0]:] #assume this part must appear last
 				tf = parse_timefunc(buf)
 				temp.tran = tf
-		ELEMENT_LIST[name] = temp
+		ELEMENT_DICT[name] = temp
 				
 	return node_dim, branch_dim
 
@@ -174,7 +175,7 @@ def parse_ctrl(raw_line):
 	#to do
 	"""
 
-	line = rawline.strip().lower().split()
+	line = raw_line.strip().lower().split()
 	if line[0][1:] == 'options':
 		pass
 		
@@ -185,8 +186,8 @@ def parse_ctrl(raw_line):
 		pass
 
 	elif line[0][1:] == 'op':
-		ANALYSIS_LIST['op'] = 1
-
+		ANALYSIS_LIST.append(1)
+		
 	elif line[0][1:] == 'dc':
 		temp_gen = linear_generator(extract(line[2]),extract(line[3]),extract(line[4]))
 		temp = analysis_dc(line[1], temp_gen)
@@ -208,7 +209,7 @@ def parse_ctrl(raw_line):
 
 	elif line[0][1:] == 'tran':
 		temp = analysis_tran(linear_generator(0, extract(line[2][:-1]), extract(line[1][:-1])))
-		if(re.search('uic', raw_line) != None):
+		if(re.search('uic', raw_line.lower()) != None):
 			temp.uic_flag = 1;
 		if len(line) > 3:
 			if line[3] != 'uic':
@@ -224,14 +225,14 @@ def parse_ctrl(raw_line):
 				if item[0] == 'v':
 					item = item.split('(')[1].split(')')[0]
 					if item.find(',') != -1:
-						temp.op_list.append(item[0].strip())
-						temp.op_list.append(item[1].strip())
+						temp.op_list.append(item.split(',')[0].strip())
+						temp.op_list.append(item.split(',')[1].strip())
 						temp.op_flag = 1
 					else:
 						temp.op_list.append(item[0].strip())
 
 				elif item[0] == 'i':
-					item = item.strip('()')
+					item = item[1:].strip('()')
 					if item[0] != 'v':
 						print "Current not support print device current except current source"
 						print " Raise error"
@@ -240,7 +241,7 @@ def parse_ctrl(raw_line):
 						temp.op_list.append(item.strip())
 						temp.op_flag = 0
 
-				if line[1] = 'dc':
+				if line[1] == 'dc':
 					PRINT_DICT['dc'].append(temp)
 				else:
 					PRINT_DICT['tran'].append(temp)
