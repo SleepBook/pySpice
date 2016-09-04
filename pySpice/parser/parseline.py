@@ -94,10 +94,27 @@ def parse_element(raw_line, node_dim, branch_dim):
 		loc_n, node_dim = address_transform(line[2], node_dim)
 		model = line[3]
 		temp = diode(model, 'd', name, loc_p, loc_n, 0)
-		m = re.search("ic=[0-9]*\?.[0-9]*[numkxgNUMKXG]?", raw_line)
+		m = re.search("ic=[0-9]*\?.[0-9]*[numkxg]?", raw_line.lower())
 		if m != None:
 			ic = extract(m.group().split('=')[1])
 			temp.ic = ic
+		pySpice.global_data.ELEMENT_DICT[name] = temp
+
+	elif line[0][0] == 'm':
+		#current only support w/l parmeter
+		name = line[0]
+		loc_d, node_dim = address_transform(line[1], node_dim)
+		loc_g, node_dim = address_transform(line[2], node_dim)
+		loc_s, node_dim = address_transform(line[3], node_dim)
+		loc_b, node_dim = address_transform(line[4], node_dim)
+		model = line[5]
+		temp = mos(name, model, loc_d, loc_g, loc_s, loc_b)
+		m = re.search("l=[0-9]*\.?[0-9]*[numkxg]?",raw_line.lower())
+		if m != None:
+			temp.l = extract(m.group().split('=')[1])
+		m = re.search("w=[0-9]*\.?[0-9]*[numkxg]?",raw_line.lower())
+		if m != None:
+			temp.w = extract(m.group().split('=')[1])
 		pySpice.global_data.ELEMENT_DICT[name] = temp
 
 	elif (line[0][0] == 'v' or line[0][0] == 'i'):

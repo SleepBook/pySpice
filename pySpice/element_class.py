@@ -72,6 +72,18 @@ class diode(ele_2port):
 		self.model = model
 		self.active_flag = 1
 
+class mos():
+	def __init__(self, name, model, loc_d, loc_g, loc_s, loc_b):
+		self.name = name
+		self.model = model
+		self.loc_d = loc_d
+		self.loc_g = loc_g
+		self.loc_s = loc_s
+		self.loc_b = loc_b
+		self.w = 0
+		self.l = 0
+		
+
 
 
 class pulse_src():

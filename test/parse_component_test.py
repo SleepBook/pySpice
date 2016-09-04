@@ -84,6 +84,23 @@ def test_parse_element():
 	assert_equal(ELEMENT_DICT['h1'].loc_ctrl_branch, 0)
 	assert_equal(ELEMENT_DICT['h1'].branch_flag, 1)
 
+	ele7 = "M1 11 12 13 0 PMOS"
+	node_dim, branch_dim = parse_element(ele7, node_dim, branch_dim)
+	assert_equal(node_dim, 14)
+	assert_equal(ELEMENT_DICT['m1'].name, 'm1')
+	assert_equal(ELEMENT_DICT['m1'].model, 'pmos')
+	assert_equal(ELEMENT_DICT['m1'].loc_d, 11)
+	assert_equal(ELEMENT_DICT['m1'].loc_g, 12)
+	assert_equal(ELEMENT_DICT['m1'].loc_s, 13)
+	assert_equal(ELEMENT_DICT['m1'].loc_b, 0)
+
+	ele8 = "M2 14 15 16 0 NMOS L=5u W=25u"
+	node_dim, branch_dim = parse_element(ele8, node_dim, branch_dim)
+	assert_equal(node_dim, 17)
+	#assert_equal(ELEMENT_DICT['m2'].l, 5e-06)
+	#assert_equal(ELEMENT_DICT['m2'].w, 25e-06)
+
+
 	
 
 def test_linear_generator():
