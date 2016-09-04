@@ -1,7 +1,8 @@
-from pySpice.global_data import *
+import pySpice.global_data
 from pySpice.element_class import *
 from pySpice.parser.utils import *
 import re
+import math
 import pdb
 
 def parse_element(raw_line, node_dim, branch_dim):
@@ -18,7 +19,7 @@ def parse_element(raw_line, node_dim, branch_dim):
 		name = line[0]
 		catagory = 'r'
 		temp = ele_2port(catagory,name,loc_p,loc_n,value)
-		ELEMENT_DICT[name] = temp
+		pySpice.global_data.ELEMENT_DICT[name] = temp
 
 	elif line[0][0] == 'e':
 		name = line[0]
@@ -30,10 +31,10 @@ def parse_element(raw_line, node_dim, branch_dim):
 		loc_p, node_dim = address_transform(ext_p, node_dim)
 		loc_n, node_dim = address_transform(ext_n, node_dim)
 		loc_ctrl_p, node_dim = address_transform(ext_ctrl_p, node_dim)
-		loc_ctrl_n, node_dim = address_transform(loc_ctrl_n, node_dim)
+		loc_ctrl_n, node_dim = address_transform(ext_ctrl_n, node_dim)
 		brch_num, branch_dim = address_transform(name, branch_dim)
 		temp = vcvs(loc_ctrl_p, loc_ctrl_n, brch_num, 'e', name, loc_p, loc_n, value)
-		ELEMENT_DICT[name] = temp
+		pySpice.global_data.ELEMENT_DICT[name] = temp
 
 	elif line[0][0] == 'f':
 		name = line[0]
@@ -45,7 +46,7 @@ def parse_element(raw_line, node_dim, branch_dim):
 		loc_n, node_dim = address_transform(ext_n, node_dim)
 		loc_ctrl_brch, branch_dim = address_transform(ext_ctrl_name, branch_dim)
 		temp = cccs(loc_ctrl_brch, 'f', name, loc_p, loc_n, value)
-		ELEMENT_DICT[name] = temp
+		pySpice.global_data.ELEMENT_DICT[name] = temp
 
 	elif line[0][0] == 'g':
 		name = line[0]
@@ -58,8 +59,8 @@ def parse_element(raw_line, node_dim, branch_dim):
 		loc_n, node_dim = address_transform(ext_n, node_dim)
 		loc_ctrl_p, node_dim = address_transform(ext_ctrl_p, node_dim)
 		loc_ctrl_n, node_dim = address_transform(ext_ctrl_n, node_dim)
-		temp = vccs(loc_ctrl_p, loc_ctrl_v, 'g', name, loc_p, loc_n, value)
-		ELEMENT_DICT[name] = temp
+		temp = vccs(loc_ctrl_p, loc_ctrl_n, 'g', name, loc_p, loc_n, value)
+		pySpice.global_data.ELEMENT_DICT[name] = temp
 
 	elif line[0][0] == 'h':
 		name = line[0]
@@ -69,7 +70,7 @@ def parse_element(raw_line, node_dim, branch_dim):
 		value = extract(line[4])
 		loc_brch, branch_dim = address_transform(name, branch_dim)
 		temp = ccvs(loc_brch, loc_ctrl_brch, 'g', name, loc_p, loc_n, value)
-		ELEMENT_DICT[name] = temp
+		pySpice.global_data.ELEMENT_DICT[name] = temp
 		
 	elif line[0][0] == 'c' or line[0][0] == 'l':
 		name = line[0]
@@ -80,24 +81,24 @@ def parse_element(raw_line, node_dim, branch_dim):
 			temp = capacitor('c', name, loc_p, loc_n, value)
 		else:
 			loc_brch, branch_dim = address_transform(name, branch_dim) 
-			temp = inductor(loc_branch, 'l', name, loc_p, loc_n, value)
+			temp = inductor(loc_brch, 'l', name, loc_p, loc_n, value)
 			
 		if (len(line) == 5 and line[4][1:3] == 'ic'):
 			temp.ic = (line[4].split('='))[1][:-1]
 			#current only support format like: IC=3v
-		ELEMENT_DICT[name] = temp
+		pySpice.global_data.ELEMENT_DICT[name] = temp
 
 	elif line[0][0] == 'd':
 		name = line[0]
 		loc_p, node_dim = address_transform(line[1], node_dim)
 		loc_n, node_dim = address_transform(line[2], node_dim)
 		model = line[3]
-		temp = diode(model, 'd', name, loc_p, loc_n)
+		temp = diode(model, 'd', name, loc_p, loc_n, 0)
 		m = re.search("ic=[0-9]*\?.[0-9]*[numkxgNUMKXG]?", raw_line)
 		if m != None:
 			ic = extract(m.group().split('=')[1])
-		temp.ic = ic
-		ELEMENT_DICT[name] = temp
+			temp.ic = ic
+		pySpice.global_data.ELEMENT_DICT[name] = temp
 
 	elif (line[0][0] == 'v' or line[0][0] == 'i'):
 		name = line[0]
@@ -121,16 +122,19 @@ def parse_element(raw_line, node_dim, branch_dim):
 			if m != None:
 				buf = m.group().split()
 				num = len(buf)
-				temp.ac_mag = extract(buf[1])
+				ac_mag = extract(buf[1])
+				ac_phase = 0
 				if num == 3:
-					temp.ac_phase = eval(buf[2])
-
+					ac_phase = eval(buf[2])
+				real = ac_mag * math.cos(math.pi * ac_phase/180)
+				imag = ac_mag * math.sin(math.pi * ac_phase/180)
+				temp.ac = complex(real, imag)
 			m = re.search("sin|exp|pulse",raw_line.lower())
 			if m != None:
 				buf = raw_line.lower()[m.span()[0]:] #assume this part must appear last
 				tf = parse_timefunc(buf)
 				temp.tran = tf
-		ELEMENT_DICT[name] = temp
+		pySpice.global_data.ELEMENT_DICT[name] = temp
 				
 	return node_dim, branch_dim
 
@@ -186,7 +190,7 @@ def parse_ctrl(raw_line):
 		pass
 
 	elif line[0][1:] == 'op':
-		ANALYSIS_LIST.append(1)
+		pySpice.global_data.ANALYSIS_LIST.append(1)
 		
 	elif line[0][1:] == 'dc':
 		temp_gen = linear_generator(extract(line[2]),extract(line[3]),extract(line[4]))
@@ -195,7 +199,7 @@ def parse_ctrl(raw_line):
 			temp.double_scan_flag = 1
 			temp.generator2 = linear_generator(extract(line[6]), extract(line[7]), extract(line[8]))
 			temp.swp_src2 = line[5]
-		ANALYSIS_LIST.append(temp)
+		pySpice.global_data.ANALYSIS_LIST.append(temp)
 			
 	elif line[0][1:] == 'ac':
 		if line[1] == 'lin':
@@ -205,7 +209,7 @@ def parse_ctrl(raw_line):
 		elif line[1] == 'dec':
 			temp_gen = dec_generator(extract(line[2]), extract(line[3]), extract(line[4]))
 		temp = analysis_ac(temp_gen)
-		ANALYSIS_LIST.append(temp)
+		pySpice.global_data.ANALYSIS_LIST.append(temp)
 
 	elif line[0][1:] == 'tran':
 		temp = analysis_tran(linear_generator(0, extract(line[2][:-1]), extract(line[1][:-1])))
@@ -216,39 +220,48 @@ def parse_ctrl(raw_line):
 				temp.show_start = extract(line[3][:-1])
 				if len(line) > 4 and line[4] != 'uic':
 					temp.max_step = extract(line[4][:-1])
-		ANALYSIS_LIST.append(temp)
+		pySpice.global_data.ANALYSIS_LIST.append(temp)
 
 	elif (line[0][1:] == 'print') or (line[0][1:] == 'plot'):
-		if line[1] == 'dc' or line[1] == 'tran':
-			for item in line[2:]:
-				temp = print_item(item)
-				if item[0] == 'v':
-					item = item.split('(')[1].split(')')[0]
-					if item.find(',') != -1:
-						temp.op_list.append(item.split(',')[0].strip())
-						temp.op_list.append(item.split(',')[1].strip())
-						temp.op_flag = 1
-					else:
-						temp.op_list.append(item[0].strip())
-
-				elif item[0] == 'i':
-					item = item[1:].strip('()')
-					if item[0] != 'v':
-						print "Current not support print device current except current source"
-						print " Raise error"
-						return -1
-					else:
-						temp.op_list.append(item.strip())
-						temp.op_flag = 0
-
-				if line[1] == 'dc':
-					PRINT_DICT['dc'].append(temp)
+		for item in line[2:]:
+			temp = print_item(item)
+			if item[0] == 'v':
+				if line[1] == 'ac':
+					item = item[2:]
+				item = item.split('(')[1].split(')')[0]
+				if item.find(',') != -1:
+					temp.op_list.append(item.split(',')[0].strip())
+					temp.op_list.append(item.split(',')[1].strip())
+					temp.op_flag = 1
 				else:
-					PRINT_DICT['tran'].append(temp)
+					temp.op_list.append(item[0].strip())
 
-		elif line[1] == 'ac':
-			#TO_DO
-			pass
+			elif item[0] == 'i':
+				if line[1] == 'ac':
+					item  = item[2:].strip('()')
+				else:
+					item = item[1:].strip('()')
+				if item[0] != 'v':
+					print "Current not support print device current except current source"
+					print " Raise error"
+					return -1
+				else:
+					temp.op_list.append(item.strip())
+					temp.op_flag = 0
+
+			if line[1] == 'dc':
+				pySpice.global_data.PRINT_DICT['dc'].append(temp)
+			elif line[1] == 'tran':
+				pySpice.global_data.PRINT_DICT['tran'].append(temp)
+			elif line[1] == 'ac':
+				pySpice.global_data.PRINT_DICT['ac'].append(temp)
+			else:
+				print 'error'
+
+
+		
+
+			
 					
 					
 						

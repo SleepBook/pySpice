@@ -1,4 +1,4 @@
-from pySpice.global_data import *
+import pySpice.global_data
 
 def internalize(node_dim):
 	"""Convert External Node Name to Internal Node Name
@@ -12,28 +12,28 @@ def internalize(node_dim):
 	of the MNA matrix(row 0/column 0 included)
 	"""
 
-	for item in ELEMENT_DICT.values():
+	for item in pySpice.global_data.ELEMENT_DICT.values():
 		if item.branch_flag == 1:
 			item.branch = item.branch + node_dim
-			NODE_TRANSLATION[item.name] = item.branch
+			pySpice.global_data.NODE_TRANSLATION[item.name] = item.branch
 			if item.catagory == 'h':
 				item.loc_ctrl_branch = item.loc_ctrl_branch + node_dim		
 
-	for item in PRINT_DICT['dc']:
+	for item in pySpice.global_data.PRINT_DICT['dc']:
 		for num, point in enumerate(item.op_list):
-			check_point = NODE_TRANSLATION[point]
+			check_point = pySpice.global_data.NODE_TRANSLATION[point]
 			item.op_list[num] = check_point
-			if check_point not in watch_list['dc']:
-				watch_list['dc'].append(check_point)
+			if check_point not in pySpice.global_data.watch_list['dc']:
+				pySpice.global_data.watch_list['dc'].append(check_point)
 
-	for item in PRINT_DICT['tran']:
+	for item in pySpice.global_data.PRINT_DICT['tran']:
 		for num, point in enumerate(item.op_list):
-			check_point = NODE_TRANSLATION[point]
+			check_point = pySpice.global_data.NODE_TRANSLATION[point]
 			item.op_list[num] = check_point
-			if check_point not in watch_list['tran']:
-				watch_list['tran'].append(check_point)
+			if check_point not in pySpice.global_data.watch_list['tran']:
+				pySpice.global_data.watch_list['tran'].append(check_point)
 
-	for item in PRINT_DICT['ac']:
+	for item in pySpice.global_data.PRINT_DICT['ac']:
 		#TO DO
 		pass
 

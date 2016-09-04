@@ -6,7 +6,7 @@ def parser(netlist):
 	"""Parse Spice Netlist
 
 	:returns element list: a list contain all the circuit conponent
-	:returns analylist: a list contain the analysis cmds
+	:returns analylist: a list contain th e analysis cmds
 	:returns setting list: list for setting objs
 	:returns prints dic: a dict for print cmds, ac,dc,tran
 	:raised KeyErr:
@@ -31,8 +31,9 @@ def parser(netlist):
 				node_dim, branch_dim = parse_element(line,node_dim,branch_dim)
 
 	internalize(node_dim)
-	pySpice.global_data.MNA_dim = node_dim + branch_dim -1
-	pdb.set_trace()
+	# 0 included
+	pySpice.global_data.MNA_dim = node_dim + branch_dim
+	
 	
 	
 

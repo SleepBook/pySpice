@@ -1,4 +1,4 @@
-from pySpice.global_data import NODE_TRANSLATION
+import pySpice.global_data
 
 def extract(unit_value):
 	'''
@@ -37,12 +37,12 @@ def address_transform(label, node_dim):
 	tmp value from parse module to construct the dimensions for the branch
 	true realization need some research
 	'''
-	if not (label in NODE_TRANSLATION.keys()):
-		NODE_TRANSLATION[label] = node_dim
+	if not (label in pySpice.global_data.NODE_TRANSLATION.keys()):
+		pySpice.global_data.NODE_TRANSLATION[label] = node_dim
 		node_dim += 1
 		return node_dim-1, node_dim
 	else:
-		return NODE_TRANSLATION[label], node_dim
+		return pySpice.global_data.NODE_TRANSLATION[label], node_dim
 
 def linear_generator(start, stop, step):
 	temp = start

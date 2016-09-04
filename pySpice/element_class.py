@@ -28,8 +28,7 @@ class inductor(ele_2port):
 class i_src(ele_2port):
 	def __init__(self, *av):
 		ele_2port.__init__(self, *av)
-		self.ac_mag = 0
-		self.ac_phase = 0
+		self.ac = 0 + 0j
 		self.tran = 0
 
 class v_src(ele_2port):
@@ -37,8 +36,7 @@ class v_src(ele_2port):
 		ele_2port.__init__(self, *av)
 		self.branch = brch_num
 		self.branch_flag = 1
-		self.ac_mag = 0
-		self.ac_phase = 0
+		self.ac = 0 + 0j
 		self.tran = 0
 
 class vcvs(ele_2port):
@@ -46,7 +44,7 @@ class vcvs(ele_2port):
 		ele_2port.__init__(self, *av)
 		self.loc_ctrl_p = loc_ctrl_p
 		self.loc_ctrl_n = loc_ctrl_n
-		self.branch_num = brch_num
+		self.branch = brch_num
 		self.branch_flag = 1
 
 class vccs(ele_2port):
@@ -65,7 +63,7 @@ class ccvs(ele_2port):
 	def __init__(self, brch_num, loc_ctrl_brch, *av):
 		ele_2port.__init__(self, *av)
 		self.loc_ctrl_branch = loc_ctrl_brch
-		self.branch_num = brch_num
+		self.branch = brch_num
 		self.branch_flag = 1
 
 class diode(ele_2port):

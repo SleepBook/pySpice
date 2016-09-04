@@ -46,15 +46,45 @@ def test_parse_element():
 	assert_equal(ELEMENT_DICT['r1'].branch_flag,0)
 	assert_equal(ELEMENT_DICT['r1'].active_flag,0)
 
-	ele2 = "VIN 3 0 0.01 AC 1 35 SIN(0 1 1X)"
+	ele2 = "VIN 2 0 0.01 AC 2 60 SIN(0 1 1X)"
 	node_dim, branch_dim = parse_element(ele2, node_dim, branch_dim)
 	assert_equal(node_dim,3)
 	assert_equal(branch_dim, 1)
 	assert_equal(ELEMENT_DICT['vin'].branch, 0)
 	assert_equal(ELEMENT_DICT['vin'].branch_flag, 1)
-	assert_equal(ELEMENT_DICT['vin'].ac_mag, 1)
-	assert_equal(ELEMENT_DICT['vin'].ac_phase, 35)
+	#assert_equal(ELEMENT_DICT['vin'].ac.real, 1.0)
+	assert_equal(ELEMENT_DICT['vin'].ac.imag, 2 * math.sin(math.pi*60/180))
 	assert_equal(ELEMENT_DICT['vin'].tran.freq, 1e06)
+
+	ele3 = "E1 3 4 1 2 2.0"
+	node_dim, branch_dim = parse_element(ele3, node_dim, branch_dim)
+	assert_equal(node_dim, 5)
+	assert_equal(branch_dim, 2)
+	assert_equal(ELEMENT_DICT['e1'].branch, 1)
+	assert_equal(ELEMENT_DICT['e1'].branch_flag, 1)
+	assert_equal(ELEMENT_DICT['e1'].value, 2.0)
+
+	ele4 = "F1 5 6 VIN 2.0"
+	node_dim, branch_dim = parse_element(ele4, node_dim, branch_dim)
+	assert_equal(node_dim, 7)
+	assert_equal(branch_dim, 2)
+	assert_equal(ELEMENT_DICT['f1'].loc_ctrl_branch, 0)
+	assert_equal(ELEMENT_DICT['f1'].branch_flag, 1)
+
+	ele5 = "G1 7 8  2 0 3.0"
+	node_dim, branch_dim = parse_element(ele5, node_dim, branch_dim)
+	assert_equal(node_dim, 9)
+	assert_equal(branch_dim, 2)
+
+	ele6 = "H1 9 10 VIN 3.0"
+	node_dim, branch_dim = parse_element(ele6, node_dim, branch_dim)
+	assert_equal(node_dim, 11)
+	assert_equal(branch_dim, 3)
+	assert_equal(ELEMENT_DICT['h1'].branch, 2)
+	assert_equal(ELEMENT_DICT['h1'].loc_ctrl_branch, 0)
+	assert_equal(ELEMENT_DICT['h1'].branch_flag, 1)
+
+	
 
 def test_linear_generator():
 	start = 5
@@ -143,6 +173,17 @@ def test_parse_print():
 	assert_equal(PRINT_DICT['dc'][0].op_list,['4','3'])
 	assert_equal(PRINT_DICT['dc'][1].op_flag, 0)
 	assert_equal(PRINT_DICT['dc'][1].op_list, ['vsec'])
+
+	line3 = ".PRINT AC VM(4,2) VR(7) VP(8,3) IM(VSEC)"
+	parse_ctrl(line3)
+	assert_equal(PRINT_DICT['ac'][0].cmd, 'vm(4,2)')
+	assert_equal(PRINT_DICT['ac'][0].op_flag, 1)
+	assert_equal(PRINT_DICT['ac'][0].op_list, ['4','2'])
+
+	assert_equal(PRINT_DICT['ac'][1].cmd, 'vr(7)')
+	assert_equal(PRINT_DICT['ac'][2].cmd, 'vp(8,3)')
+	assert_equal(PRINT_DICT['ac'][3].cmd, 'im(vsec)')
+
 
 	
 	
