@@ -82,9 +82,6 @@ class mos():
 		self.loc_b = loc_b
 		self.w = 0
 		self.l = 0
-		
-
-
 
 class pulse_src():
 	def __init__(self, vdd, vgnd, td, tr, tf, pw, per):
@@ -112,7 +109,7 @@ class sin_src():
 #below are the class for analysis cmds
 class analysis_dc():
 	def __init__(self, swp_src, generator):
-		self.catagory = 'dc'
+		self.catagory = 'analy_dc'
 		self.swp_src = swp_src
 		self.generator = generator
 		self.double_scan_flag = 0
@@ -121,13 +118,14 @@ class analysis_dc():
 
 class analysis_ac():
 	def __init__(self, generator):
-		self.catagory = 'ac'
+		self.catagory = 'analy_ac'
 		self.generator = generator
 
 class analysis_tran():
-	def __init__(self, generator):
-		self.catagory = 'tran'
+	def __init__(self, generator, step):
+		self.catagory = 'analy_tran'
 		self.generator = generator
+		self.step = step
 		self.uic_flag = 0
 		self.show_start = 0
 		self.max_step = 0
@@ -137,5 +135,13 @@ class print_item():
 		self.cmd = cmd
 		self.op_flag = 0
 		self.op_list = []
+
+#used in the solving engine
+class sweep_item():
+	def __init__(self, switch, coord):
+		self.switch = switch
+		self.coord = coord
+		self.generator = 0
+		self.update_src = 0
 		
 		

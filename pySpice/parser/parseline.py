@@ -229,7 +229,7 @@ def parse_ctrl(raw_line):
 		pySpice.global_data.ANALYSIS_LIST.append(temp)
 
 	elif line[0][1:] == 'tran':
-		temp = analysis_tran(linear_generator(0, extract(line[2][:-1]), extract(line[1][:-1])))
+		temp = analysis_tran(linear_generator(0, extract(line[2][:-1]), extract(line[1][:-1])), extract(line[1][:-1]))
 		if(re.search('uic', raw_line.lower()) != None):
 			temp.uic_flag = 1;
 		if len(line) > 3:

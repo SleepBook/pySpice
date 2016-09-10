@@ -166,7 +166,7 @@ def test_ctrl():
 
 	line5 = ".TRAN 1NS 100NS"
 	parse_ctrl(line5)
-	assert_equal(ANALYSIS_LIST[4].catagory, 'tran')
+	assert_equal(ANALYSIS_LIST[4].catagory, 'analy_tran')
 	for item1, item2 in zip(ANALYSIS_LIST[4].generator, linear_generator(0,extract('100n'), extract('1n'))):
 		assert_equal(item1, item2)
 
@@ -200,16 +200,5 @@ def test_parse_print():
 	assert_equal(PRINT_DICT['ac'][1].cmd, 'vr(7)')
 	assert_equal(PRINT_DICT['ac'][2].cmd, 'vp(8,3)')
 	assert_equal(PRINT_DICT['ac'][3].cmd, 'im(vsec)')
-
-
-	
-	
-	
-
-
-
-
-
-
 
 
