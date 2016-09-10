@@ -33,11 +33,15 @@ def single_solve(analysis_type, analysis_instance):
 	#and this will behave like value-pass
 	#if the data is muttable, however, then it will simpliy pass the link and this behave like address-pass
 
-	#here, np.ndarray is mutable		
-	MNA = np.zeros((pySpice.global_data.MNA_dim, pySpice.global_data.MNA_dim))
-	RHS = np.zeros((pySpice.global_data.MNA_dim,))
+	#here, np.ndarray is mutable
+	if analysis_type == 'ac':		
+		MNA = np.zeros((pySpice.global_data.MNA_dim, pySpice.global_data.MNA_dim), dtype=np.complex)
+		RHS = np.zeros((pySpice.global_data.MNA_dim,), dtype=np.complex)
+	else:
+		MNA = np.zeros((pySpice.global_data.MNA_dim, pySpice.global_data.MNA_dim), dtype=np.double)
+		RHS = np.zeros((pySpice.global_data.MNA_dim,), dtype=np.double)
 
 	sweep_flag, sweep_list, converge_flag, converge_list = stamp(analysis_type, analysis_instance, MNA, RHS)
-	raw_output = solve_engine(sweep_flag, sweep_list, converge_flag, converge_list)
+	raw_output = solve_engine(sweep_flag, sweep_list, converge_flag, converge_list, MNA, RHS)
 
 	return raw_output

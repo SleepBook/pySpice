@@ -65,3 +65,16 @@ def test_stamp_active():
 	assert_equal(sweep_list[1].switch,'gen')
 	assert_equal(sweep_list[1].coord, [((3,),1)])
 
+
+if __name__ == '__main__':
+
+	reload(pySpice.global_data)
+	NETLIST_ROOT = 'data/sample_netlist/'
+	parser(NETLIST_ROOT + 'stamp3.sp')
+
+	MNA = np.zeros((pySpice.global_data.MNA_dim, pySpice.global_data.MNA_dim), dtype=np.complex)
+	RHS = np.zeros((pySpice.global_data.MNA_dim,), dtype=np.complex)
+	sweep_flag, sweep_list, converge_flag, converge_list = stamp('ac', pySpice.global_data.ANALYSIS_LIST[0], MNA, RHS)
+
+
+	
