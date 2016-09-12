@@ -210,8 +210,12 @@ def parse_ctrl(raw_line):
 		pySpice.global_data.ANALYSIS_LIST.append(1)
 		
 	elif line[0][1:] == 'dc':
-		temp_gen = linear_generator(extract(line[2]),extract(line[3]),extract(line[4]))
-		temp = analysis_dc(line[1], temp_gen)
+		start_l = extract(line[2])
+		stop_l = extract(line[3])
+		step_l = extract(line[4])
+		temp_gen = linear_generator(start_l, stop_l, step_l)
+		iter_time = ((start_l - stop_l)/step_l)+1
+		temp = analysis_dc(line[1], temp_gen, iter_time)
 		if len(line) > 5:
 			temp.double_scan_flag = 1
 			temp.generator2 = linear_generator(extract(line[6]), extract(line[7]), extract(line[8]))
@@ -220,16 +224,32 @@ def parse_ctrl(raw_line):
 			
 	elif line[0][1:] == 'ac':
 		if line[1] == 'lin':
-			temp_gen = linear_generator(extract(line[2]), extract(line[3]), extract(line[4]))
+			start_l = extract(line[2])
+			stop_l = extract(line[3])
+			step_l = extract(line[4])
+			temp_gen = linear_generator(start_l, stop_l, step_l)
+			iter_time = int(((stop_l-start_l)/step_l)) + 1
 		elif line[1] == 'oct':
-			temp_gen = oct_generator(extract(line[2]), extract(line[3]), extract(line[4]))
+			start_l = extract(line[2])
+			stop_l = extract(line[3])
+			step_l = extract(line[4])
+			temp_gen = oct_generator(start_l, stop_l, step_l)
+			iter_time = int(math.log(stop_l/start_l, pow(8, 1./step_l))) + 1
 		elif line[1] == 'dec':
-			temp_gen = dec_generator(extract(line[2]), extract(line[3]), extract(line[4]))
-		temp = analysis_ac(temp_gen)
+			start_l = extract(line[2])
+			stop_l = extract(line[3])
+			step_l = extract(line[4])
+			temp_gen = dec_generator(start_l, stop_l, step_l)
+			iter_time = int(math.log(stop_l/start_l, pow(10, 1./step_l))) + 1
+		temp = analysis_ac(temp_gen, iter_time)
 		pySpice.global_data.ANALYSIS_LIST.append(temp)
 
 	elif line[0][1:] == 'tran':
-		temp = analysis_tran(linear_generator(0, extract(line[2][:-1]), extract(line[1][:-1])), extract(line[1][:-1]))
+		start_l = 0
+		stop_l = extract(line[2][:-1])
+		step_l = extract(line[1][:-1])
+		iter_time = int(((stop_l - start_l)/step_l)) + 1
+		temp = analysis_tran(linear_generator(0, stop_l, step_l), step_l, iter_time)
 		if(re.search('uic', raw_line.lower()) != None):
 			temp.uic_flag = 1;
 		if len(line) > 3:

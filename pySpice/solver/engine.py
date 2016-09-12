@@ -1,8 +1,11 @@
+import pySpice.global_data
+import numpy as np
+
 """
 This is the key module inside the solver utility
 """
 
-def solve_engine(sweep_flag, sweep_list, converge_flag, converge_list, watch_list):
+def solve_engine(iter_time, sweep_flag, sweep_list, converge_flag, converge_list, watch_list, MNA, RHS, ANS):
 	"""
 	Abstract the Circuit Resolver's Mathmatic and Systematic Behavior
 
@@ -17,6 +20,42 @@ def solve_engine(sweep_flag, sweep_list, converge_flag, converge_list, watch_lis
 	within each solving, the inner layer take care of the converge issue.
 	along the way, the engine also read in the watchlist and generate the output raw data
 	"""
-	
-	#TO DO 
-	pass
+	state_log = []
+	for i in range(len(watch_list)):
+		state_log.append([])
+
+	for i in range(iter_time):
+		for sweep_item in sweep_list:
+			if sweep_item.switch == 'gen':
+				value = sweep_item.generator.next()
+			elif sweep_item.switch == 'upd':
+				value = 0
+				for j in range(len(update_src)):
+					value = value + ANS[update_src[j][0][0]]*update_src[j][1]
+			
+			for j in range(len(sweep_item.coord)):
+				if len(sweep_item.coord[j][0])==1:
+					RHS[sweep_item.coord[j][0][0]] = value*sweep_item.coord[j][1]
+				elif len(sweep_item.coord[j][0])==2:
+					MNA[sweep_item.coord[j][0][0], sweep_item.coord[j][0][1]] = value*sweep_item.coord[j][1]
+
+		state_definer(converge_flag, converge_list, MNA, RHS, ANS)
+
+		for j, script in enumerate(watch_list):
+			state_log[j].append(ANS[watch_list[script]])
+
+	return state_log
+
+
+
+def state_definer(converge_flag, converge_list, MNA, RHS, ANS):
+	"""
+	Solve the Matrix, including handling the convergence issue"""
+	if converge_flag:
+		pass
+		print 'not diode yet'
+
+	else:
+		ANS = np.linalg.solve(MNA, RHS)
+
+

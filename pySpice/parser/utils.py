@@ -47,25 +47,25 @@ def address_transform(label, node_dim):
 def linear_generator(start, stop, step):
 	temp = start
 	if step > 0:
-		while temp < stop:
+		while temp <= stop:
 			yield temp
 			temp += step
 	else:
-		while temp > stop:
+		while temp >= stop:
 			yield temp
 			temp += step
 
 def dec_generator(start, stop, step):
 	temp = start
 	factor = pow(10, 1./step)
-	while temp < stop:
+	while temp <= stop:
 		yield temp
 		temp *= factor
 
 def oct_generator(start, stop, step):
 	temp = start
 	factor = pow(8, 1./step)
-	while temp < stop:
+	while temp <= stop:
 		yield temp
 		temp *= factor
 		

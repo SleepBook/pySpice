@@ -108,24 +108,27 @@ class sin_src():
 
 #below are the class for analysis cmds
 class analysis_dc():
-	def __init__(self, swp_src, generator):
+	def __init__(self, swp_src, generator, iter_time):
 		self.catagory = 'analy_dc'
 		self.swp_src = swp_src
 		self.generator = generator
+		self.total_time = iter_time
 		self.double_scan_flag = 0
 		self.swp_src2 = ''
 		self.generator2 = 0 #run into this case from time to time, how to resolve?
 
 class analysis_ac():
-	def __init__(self, generator):
+	def __init__(self, generator, iter_time):
 		self.catagory = 'analy_ac'
 		self.generator = generator
+		self.iter_time = iter_time
 
 class analysis_tran():
-	def __init__(self, generator, step):
+	def __init__(self, generator, step, iter_time):
 		self.catagory = 'analy_tran'
 		self.generator = generator
 		self.step = step
+		self.iter_time = iter_time
 		self.uic_flag = 0
 		self.show_start = 0
 		self.max_step = 0

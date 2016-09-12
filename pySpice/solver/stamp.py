@@ -92,7 +92,8 @@ def stamp(analysis_type, analysis_instance, MNA, RHS):
 					((element.loc_n, element.loc_p),0-imped), ((element.loc_n, element.loc_n),imped)]
 
 				temp = sweep_item('gen',coord)
-				temp.generator = analysis_instance.generator
+				analysis_instance.generator, temp_gene = tee(analysis_instance.generator)
+				temp.generator = temp.gene
 				sweep_list.append(temp)
 
 			elif analysis_type == 'tran':
@@ -133,7 +134,8 @@ def stamp(analysis_type, analysis_instance, MNA, RHS):
 		elif swp_src.catagory == 'i':
 			coord = [((swp_src.loc_p,), -1), ((swp_src.loc_n,), 1)]
 		temp = sweep_item('gen',coord)
-		temp.generator = analysis_instance.generator
+		analysis_instance.generator, temp_gene = tee(analysis_instance.generator)
+		temp.generator = temp.gene
 		sweep_list.append(temp)
 
 	return sweep_flag, sweep_list, converge_flag, converge_list

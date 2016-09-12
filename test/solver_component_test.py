@@ -41,8 +41,8 @@ def test_stamp_active():
 	NETLIST_ROOT = 'data/sample_netlist/'
 	parser(NETLIST_ROOT + 'stamp3.sp')
 
-	MNA = np.zeros((pySpice.global_data.MNA_dim, pySpice.global_data.MNA_dim))
-	RHS = np.zeros((pySpice.global_data.MNA_dim,))
+	MNA = np.zeros((pySpice.global_data.MNA_dim, pySpice.global_data.MNA_dim), dtype=np.complex)
+	RHS = np.zeros((pySpice.global_data.MNA_dim,), dtype=np.complex)
 	sweep_flag, sweep_list, converge_flag, converge_list = stamp('ac', pySpice.global_data.ANALYSIS_LIST[0], MNA, RHS)
 
 	assert_equal(sweep_flag, 1)
