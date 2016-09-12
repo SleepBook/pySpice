@@ -49,11 +49,11 @@ def single_solve(analysis_type, analysis_instance):
 	sweep_flag, sweep_list, converge_flag, converge_list = stamp(analysis_type, analysis_instance, MNA, RHS)
 
 	if analysis_type == 'ac':
-		raw_output = solve_engine(analysis_instance.iter_time, sweep_flag, sweep_list, converge_flag, converge_list, pySpice.global_data.watch_list['ac'], MNA, RHS, ANS)
+		raw_output = solve_engine(sweep_flag, sweep_list, converge_flag, converge_list, pySpice.global_data.watch_list['ac'], MNA, RHS, ANS)
 	elif analysis_type == 'dc':
-		raw_output = solve_engine(analysis_instance.iter_time, sweep_flag, sweep_list, converge_flag, converge_list, pySpice.global_data.watch_list['dc'], MNA, RHS, ANS)
+		raw_output = solve_engine(sweep_flag, sweep_list, converge_flag, converge_list, pySpice.global_data.watch_list['dc'], MNA, RHS, ANS)
 	elif analysis_type == 'tran':
-		raw_output = solve_engine(analysis_instance.iter_time, sweep_flag, sweep_list, converge_flag, converge_list, pySpice.global_data.watch_list['tran'], MNA, RHS, ANS)
+		raw_output = solve_engine(sweep_flag, sweep_list, converge_flag, converge_list, pySpice.global_data.watch_list['tran'], MNA, RHS, ANS)
 
 	scan_bar = []
 	for cursor in analysis_instance.generator:
