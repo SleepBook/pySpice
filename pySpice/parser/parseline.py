@@ -11,7 +11,7 @@ def parse_element(raw_line, node_dim, branch_dim):
 	line = raw_line.strip().lower().split()
 
 	if line[0][0] == 'r':
-		value = extract(line[3])
+		value = 1./extract(line[3])
 		ext_p = line[1]
 		ext_n = line[2]
 		loc_p, node_dim = address_transform(ext_p, node_dim)
@@ -223,19 +223,19 @@ def parse_ctrl(raw_line):
 			
 	elif line[0][1:] == 'ac':
 		if line[1] == 'lin':
-			start_l = extract(line[2])
-			stop_l = extract(line[3])
-			step_l = extract(line[4])
+			start_l = extract(line[3])
+			stop_l = extract(line[4])
+			step_l = (stop_l - start_l)/extract(line[2])
 			temp_gen = linear_generator(start_l, stop_l, step_l)
 		elif line[1] == 'oct':
-			start_l = extract(line[2])
-			stop_l = extract(line[3])
-			step_l = extract(line[4])
+			start_l = extract(line[3])
+			stop_l = extract(line[4])
+			step_l = extract(line[2])
 			temp_gen = oct_generator(start_l, stop_l, step_l)
 		elif line[1] == 'dec':
-			start_l = extract(line[2])
-			stop_l = extract(line[3])
-			step_l = extract(line[4])
+			start_l = extract(line[3])
+			stop_l = extract(line[4])
+			step_l = extract(line[2])
 			temp_gen = dec_generator(start_l, stop_l, step_l)
 		temp = analysis_ac(temp_gen)
 		pySpice.global_data.ANALYSIS_LIST.append(temp)

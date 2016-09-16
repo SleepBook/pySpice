@@ -34,7 +34,10 @@ def internalize(node_dim):
 				pySpice.global_data.watch_list['tran'].append(check_point)
 
 	for item in pySpice.global_data.PRINT_DICT['ac']:
-		#TO DO
-		pass
+		for num, point in enumerate(item.op_list):
+			check_point = pySpice.global_data.NODE_TRANSLATION[point]
+			item.op_list[num] = check_point
+			if check_point not in pySpice.global_data.watch_list['ac']:
+				pySpice.global_data.watch_list['ac'].append(check_point)
 
 	

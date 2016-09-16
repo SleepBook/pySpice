@@ -48,7 +48,7 @@ def stamp(analysis_type, analysis_instance, MNA, RHS):
 			MNA[element.loc_n, element.branch] += 0 - 1
 			MNA[element.branch, element.loc_p] += 1
 			MNA[element.branch, element.loc_n] += 0 - 1
-			if analysis_type == 'dc':				
+			if analysis_type == 'dc' and analysis_instance.swp_src != element.name:				
 				RHS[element.branch] += element.value
 			elif analysis_type == 'ac':
 				RHS[element.branch] += element.ac
@@ -78,23 +78,27 @@ def stamp(analysis_type, analysis_instance, MNA, RHS):
 		elif element.catagory == 'c' or element.catagory == 'l':
 			if analysis_type == 'dc':
 				continue
-
 			elif analysis_type == 'ac':
 				sweep_flag = 1
 				if element.catagory == 'c':
-					imped = 1./((0+1j)*2*math.pi*element.value)
-					coord = [((element.loc_p, element.loc_p),imped), ((element.loc_p, element.loc_n),0-imped), \
-					((element.loc_n, element.loc_p),0-imped), ((element.loc_n, element.loc_n),imped)]
+					admitance = ((0+1j)*2*math.pi*element.value)
+					coord = [((element.loc_p, element.loc_p),admitance), ((element.loc_p, element.loc_n),0-admitance), \
+					((element.loc_n, element.loc_p),0-admitance), ((element.loc_n, element.loc_n),admitance)]
 				
 				elif element.catagory == 'l':
-					imped = (0+1j)*2*math.pi*element.value
-					coord = [((element.loc_p, element.loc_p), imped), ((element.loc_p, element.loc_n),0-imped), \
-					((element.loc_n, element.loc_p),0-imped), ((element.loc_n, element.loc_n),imped)]
-
+					admitance = 1./((0+1j)*2*math.pi*element.value)
+					#coord = [((element.loc_p, element.loc_p), admitance), ((element.loc_p, element.loc_n),0-admitance), \
+					#((element.loc_n, element.loc_p),0-admitance), ((element.loc_n, element.loc_n),admitance)]
+					MNA[element.loc_p, element.branch] = 1
+					MNA[element.loc_n, element.branch] = 0-1
+					MNA[element.branch, element.branch] = 1
+					coord = [((element.branch, element.loc_p), 0-admitance), ((element.branch, element.loc_n), admitance)]
 				temp = sweep_item('gen',coord)
 				analysis_instance.generator, temp_gene = tee(analysis_instance.generator)
 				temp.generator = temp_gene
+				temp.update_src = 1
 				sweep_list.append(temp)
+
 
 			elif analysis_type == 'tran':
 				sweep_flag = 1

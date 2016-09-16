@@ -48,4 +48,22 @@ realize this functionality. <br>
 finally, a second-pass is necessary, because in first-pass someplace
 still use external node name(print) and the node name and branch name
 are not named contiously.(translate_dict), these job are assigned to the
+
+
+##Inductor AC Resolution
+
+in AC analysis, the branch reserved for inductor is no longer needed.
+However, changing the MNA structure and re assign number to the element
+in the MNA is time-consuming. Here the resolution i came up with is to
+change the AC stamping for the inductor a bit:
+
+that's in the p_port line and n_port line only stamp 1 and -1 in the
+branch coloum respectively. And in the coloum line stamp how to
+calculate the current through the inductor by the volatge on it's side.
+
+This implement can be account in two ways. First, it can be seen as
+elaborate the involve an abundunt varible: the current through the
+inductor and add an extra equivilance for it. The other way is simply
+see it as a transformation of the original matrix. In fact, the matrix
+at hand can easily be deduced to the original MNA.
 internalize function
