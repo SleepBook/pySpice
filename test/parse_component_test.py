@@ -44,8 +44,7 @@ def test_parse_element():
 	assert_equal(ELEMENT_DICT['r1'].name,'r1')
 	#assert_equal(ELEMENT_DICT['r1'].value,3e04)
 	assert_equal(ELEMENT_DICT['r1'].branch_flag,0)
-	assert_equal(ELEMENT_DICT['r1'].active_flag,0)
-
+	
 	ele2 = "VIN 2 0 0.01 AC 2 60 SIN(0 1 1X)"
 	node_dim, branch_dim = parse_element(ele2, node_dim, branch_dim)
 	assert_equal(node_dim,3)

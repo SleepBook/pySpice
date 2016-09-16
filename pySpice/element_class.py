@@ -6,8 +6,7 @@ class ele_2port():
 		self.loc_p = loc_p
 		self.loc_n = loc_n
 		self.branch_flag = 0
-		self.active_flag = 0
-
+		
 class resistor(ele_2port):
 	def __init__(self, *av):
 		ele_2port.__init__(self, *av)
@@ -16,13 +15,11 @@ class resistor(ele_2port):
 class capacitor(ele_2port):
 	def __init__(self, *av):
 		ele_2port.__init__(self, *av)
-		self.active_flag = 1
 
 class inductor(ele_2port):
 	def __init__(self, branch_num, *av):
 		ele_2port.__init__(self, *av)
 		self.branch = branch_num
-		self.active_flag = 1
 		self.branch_flag = 1
 
 class i_src(ele_2port):
@@ -70,7 +67,7 @@ class diode(ele_2port):
 	def __init__(self, model, *av):
 		ele_2port.__init__(self, *av)
 		self.model = model
-		self.active_flag = 1
+		self.ic = 0
 
 class mos():
 	def __init__(self, name, model, loc_d, loc_g, loc_s, loc_b):

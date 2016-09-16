@@ -128,7 +128,10 @@ def stamp(analysis_type, analysis_instance, MNA, RHS):
 			if analysis_type == 'ac':
 				pass
 			else:
-				converge_flag = 1
+				converge_flag += 1
+				converge_list.append(element)
+				#the actual stamping work for diode in transfered into the engine:state_definer
+
 				
 	if analysis_type == 'dc':
 		sweep_flag = 1
