@@ -47,8 +47,8 @@ def solve_engine(sweep_flag, sweep_list, converge_flag, converge_list, watch_lis
 							break
 				elif sweep_item.switch == 'upd':
 					value = 0
-					for j in range(len(update_src)):
-						value = value + ANS[update_src[j][0][0]]*update_src[j][1]
+					for j in range(len(sweep_item.update_src)):
+						value = value + ANS[sweep_item.update_src[j][0][0]]*sweep_item.update_src[j][1]
 				
 				for j in range(len(sweep_item.coord)):
 					if len(sweep_item.coord[j][0]) == 1:

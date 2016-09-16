@@ -1,9 +1,11 @@
 Single Ressitor and Source
 
-R1 1 0 20K
-R2 1 2 2M
-VIN 2 0 DC 6
+R1 1 0 2
+R2 1 2 2
+VIN 2 0 DC 6 SIN(0 2 250X)
 
 .DC VIN 0 5 0.1
+.TRAN 1NS 10NS
+.PRINT TRAN V(1)
 .PRINT DC I(VIN)
 .END

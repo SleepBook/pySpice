@@ -23,8 +23,9 @@ def test_single_solve():
 if __name__ =='__main__':
 	reload(pySpice.global_data)
 	NETLIST_ROOT = 'data/sample_netlist/'
-	parser(NETLIST_ROOT + 'rl.sp')
-	raw_output = single_solve('ac',pySpice.global_data.ANALYSIS_LIST[0])
-	print raw_output[0]
+	parser(NETLIST_ROOT + 'rlc.sp')
+	raw_output = single_solve('tran',pySpice.global_data.ANALYSIS_LIST[1])
+	#print raw_output[1]
+	print raw_output
 	
 
