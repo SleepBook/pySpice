@@ -10,24 +10,18 @@ import math
 def solve():
 	if 1 not in pySpice.global_data.ANALYSIS_LIST:
 		print 'WARNING op not found in the netlist, doing OP automatically'
-		single_solve('op')
+	initial_state = single_solve(0)
+	pySpice.global_data.INIT_STATE = np.copy(initial_state)
 
 	for instance in pySpice.global_data.ANALYSIS_LIST:
 		if instance == 1:
 			continue
 		else:
-			if instance.catagory == 'analy_ac':
-				single_solve('ac',instance)
-			elif instance.catagory == 'analy_dc':
-				single_solve('dc', instance)
-			elif instance.catagory == 'analy_tran':
-				single_solve('tran', instance)
-			else:
-				print "unrecognized analysis, exiting"
-				return -1
+			output = single_solve(instance)
+			#TO_DO, formatting the output
+			return output
 
-
-def single_solve(analysis_type, analysis_instance):
+def single_solve(analysis_instance):
 	#attention, here raise an critical question about python, that's whether the paramenter 
 	#to a function is address-transfor or copy-transfor
 	#actually the answer is either, and it depends on the data_type
@@ -37,6 +31,11 @@ def single_solve(analysis_type, analysis_instance):
 	#if the data is muttable, however, then it will simpliy pass the link and this behave like address-pass
 
 	#here, np.ndarray is mutable
+	if analysis_instance == 0:
+		analysis_type = 'op'
+	else:
+		analysis_type = analysis_instance.catagory
+	
 	if analysis_type == 'ac':		
 		MNA = np.zeros((pySpice.global_data.MNA_dim, pySpice.global_data.MNA_dim), dtype=np.complex)
 		RHS = np.zeros((pySpice.global_data.MNA_dim,), dtype=np.complex)
@@ -48,16 +47,20 @@ def single_solve(analysis_type, analysis_instance):
 
 	sweep_flag, sweep_list, converge_flag, converge_list = stamp(analysis_type, analysis_instance, MNA, RHS)
 
-	if analysis_type == 'ac':
+	if analysis_type == 'op':
+		raw_output = solve_engine(0, [], converge_flag, converge_list, 0, MNA, RHS, ANS)
+	elif analysis_type == 'ac':
 		raw_output = solve_engine(sweep_flag, sweep_list, converge_flag, converge_list, pySpice.global_data.watch_list['ac'], MNA, RHS, ANS)
 	elif analysis_type == 'dc':
 		raw_output = solve_engine(sweep_flag, sweep_list, converge_flag, converge_list, pySpice.global_data.watch_list['dc'], MNA, RHS, ANS)
 	elif analysis_type == 'tran':
 		raw_output = solve_engine(sweep_flag, sweep_list, converge_flag, converge_list, pySpice.global_data.watch_list['tran'], MNA, RHS, ANS)
 
-	scan_bar = []
-	for cursor in analysis_instance.generator:
-		scan_bar.append(cursor)
-	raw_output.append(scan_bar)
-	
+	if analysis_type != 'op':
+		scan_bar = []
+		for cursor in analysis_instance.generator:
+			scan_bar.append(cursor)
+		raw_output.append(scan_bar)
+		
 	return raw_output
+	

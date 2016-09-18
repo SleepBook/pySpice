@@ -48,7 +48,7 @@ def stamp(analysis_type, analysis_instance, MNA, RHS):
 			MNA[element.loc_n, element.branch] += 0 - 1
 			MNA[element.branch, element.loc_p] += 1
 			MNA[element.branch, element.loc_n] += 0 - 1
-			if analysis_type == 'dc' and analysis_instance.swp_src != element.name:				
+			if analysis_type == 'op' or (analysis_type == 'dc' and analysis_instance.swp_src != element.name):				
 				RHS[element.branch] += element.value
 			elif analysis_type == 'ac':
 				RHS[element.branch] += element.ac
@@ -58,10 +58,10 @@ def stamp(analysis_type, analysis_instance, MNA, RHS):
 				temp = sweep_item('gen',coord)
 				analysis_instance.generator, temp_gene = tee(analysis_instance.generator)
 				temp.generator = make_generator(element.tran, temp_gene)		
-				sweep_list.append(temp)
+				sweep_list.append(temp)				
 
 		elif element.catagory == 'i':
-			if analysis_type == 'dc':
+			if analysis_type == 'op' or (analysis_type == 'tran' and analysis_instance.swp_src != element.name):
 				RHS[element.loc_p] += 0 - element.value
 				RHS[element.loc_n] += element.value
 			elif analysis_type == 'ac':
@@ -76,7 +76,7 @@ def stamp(analysis_type, analysis_instance, MNA, RHS):
 				sweep_list.append(temp)
 
 		elif element.catagory == 'c' or element.catagory == 'l':
-			if analysis_type == 'dc':
+			if analysis_type == 'dc' or analysis_type == 'op':
 				continue
 			elif analysis_type == 'ac':
 				sweep_flag = 1

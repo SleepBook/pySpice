@@ -106,7 +106,7 @@ class sin_src():
 #below are the class for analysis cmds
 class analysis_dc():
 	def __init__(self, swp_src, generator):
-		self.catagory = 'analy_dc'
+		self.catagory = 'dc'
 		self.swp_src = swp_src
 		self.generator = generator
 		self.double_scan_flag = 0
@@ -115,12 +115,12 @@ class analysis_dc():
 
 class analysis_ac():
 	def __init__(self, generator):
-		self.catagory = 'analy_ac'
+		self.catagory = 'ac'
 		self.generator = generator
 
 class analysis_tran():
 	def __init__(self, generator, step):
-		self.catagory = 'analy_tran'
+		self.catagory = 'tran'
 		self.generator = generator
 		self.step = step
 		self.uic_flag = 0

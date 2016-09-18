@@ -192,7 +192,6 @@ def parse_timefunc(string):
 
 def parse_ctrl(raw_line):
 	"""Parse Dot Cmds
-
 	#to do
 	"""
 

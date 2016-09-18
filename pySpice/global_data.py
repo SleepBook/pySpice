@@ -8,5 +8,6 @@ PRINT_DICT = {'dc':[], 'ac':[], 'tran':[]}
 watch_list = {'dc':[], 'ac':[], 'tran':[]}
 
 NODE_TRANSLATION = {'0':0}
+INIT_STATE = []
 
-CONVERGE_CRITERIA = 0.1
+CONVERGE_CRITERIA = 0.001

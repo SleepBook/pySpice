@@ -34,13 +34,3 @@ def parser(netlist):
 	# 0 included
 	pySpice.global_data.MNA_dim = node_dim + branch_dim
 	
-	
-	
-
-
-
-
-
-
-
-

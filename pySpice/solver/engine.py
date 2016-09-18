@@ -22,9 +22,11 @@ def solve_engine(sweep_flag, sweep_list, converge_flag, converge_list, watch_lis
 	within each solving, the inner layer take care of the converge issue.
 	along the way, the engine also read in the watchlist and generate the output raw data
 	"""
-	state_log = []
-	for i in range(len(watch_list)):
-		state_log.append([])
+	if watch_list != 0:
+		state_log = []
+		for i in range(len(watch_list)):
+			state_log.append([])
+
 	if sweep_flag:
 		value_previous = []
 		for i in range(len(sweep_list)):
@@ -63,10 +65,11 @@ def solve_engine(sweep_flag, sweep_list, converge_flag, converge_list, watch_lis
 			ANS = state_definer(converge_flag, converge_list, MNA, RHS)
 			for j, script in enumerate(watch_list):
 				state_log[j].append(ANS[script])
-			
+		return  state_log
 
-	return state_log
-
+	else:
+		ANS = state_definer(converge_flag, converge_list, MNA, RHS)
+		return ANS
 
 
 def state_definer(converge_flag, converge_list, MNA, RHS):

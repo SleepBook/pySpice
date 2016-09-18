@@ -11,28 +11,27 @@ def test_single_solve():
 	reload(pySpice.global_data)
 	NETLIST_ROOT = 'data/sample_netlist/'
 	parser(NETLIST_ROOT + 'rc.sp')
-	raw_output = single_solve('ac',pySpice.global_data.ANALYSIS_LIST[0])
+	raw_output = single_solve(pySpice.global_data.ANALYSIS_LIST[0])
 	#assert_equal(raw_output[0],0)
 
 	reload(pySpice.global_data)
 	NETLIST_ROOT = 'data/sample_netlist/'
 	parser(NETLIST_ROOT + 'rlc.sp')
-	raw_output = single_solve('ac',pySpice.global_data.ANALYSIS_LIST[0])
+	raw_output = single_solve(pySpice.global_data.ANALYSIS_LIST[0])
 	print raw_output[0]
 
 def test_solve_diode():
 	reload(pySpice.global_data)
 	NETLIST_ROOT = 'data/sample_netlist/'
 	parser(NETLIST_ROOT + 'diode.sp')
-	raw_output = single_solve('dc',pySpice.global_data.ANALYSIS_LIST[0])
+	raw_output = single_solve(pySpice.global_data.ANALYSIS_LIST[0])
 	
-
-
 if __name__ =='__main__':
 	reload(pySpice.global_data)
 	NETLIST_ROOT = 'data/sample_netlist/'
 	parser(NETLIST_ROOT + 'diode.sp')
-	raw_output = single_solve('dc',pySpice.global_data.ANALYSIS_LIST[0])
-	print raw_output
+	raw_output = solve()
+	print raw_output[0]
+
 	
 
