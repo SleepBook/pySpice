@@ -130,6 +130,7 @@ class analysis_tran():
 class print_item():
 	def __init__(self,cmd):
 		self.cmd = cmd
+		self.ac_flag = 0
 		self.op_flag = 0
 		self.op_list = []
 

@@ -3,6 +3,7 @@ from pySpice.solver.stamp import *
 from pySpice.solver.solver import *
 from pySpice.solver.engine import *
 from pySpice.parser.parser import *
+from pySpice.exhibitor.formator import *
 import pySpice.global_data
 import numpy as np
 import pdb
@@ -31,8 +32,7 @@ if __name__ =='__main__':
 	NETLIST_ROOT = 'data/sample_netlist/'
 	parser(NETLIST_ROOT + 'diode.sp')
 	raw_output = solve()
-	print raw_output['dc']
-	#format(raw_output, 'testout.ls')
+	format(raw_output, 'testout.ls')
 
 	
 

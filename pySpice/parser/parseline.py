@@ -259,6 +259,7 @@ def parse_ctrl(raw_line):
 			if item[0] == 'v':
 				if line[1] == 'ac':
 					item = item[2:]
+					temp.ac_flag = item[1]
 				item = item.split('(')[1].split(')')[0]
 				if item.find(',') != -1:
 					temp.op_list.append(item.split(',')[0].strip())
@@ -270,6 +271,7 @@ def parse_ctrl(raw_line):
 			elif item[0] == 'i':
 				if line[1] == 'ac':
 					item  = item[2:].strip('()')
+					item.ac_flag = item[1]
 				else:
 					item = item[1:].strip('()')
 				if item[0] != 'v':

@@ -8,6 +8,13 @@ import numpy as np
 import math
 
 def solve():
+	"""
+	top level of solving circuit matrix utility
+
+	output is a high-dimension array, each component is the watch_list sampling
+	of each analysis"""
+	
+	watchpoint_data = {}
 	if 1 not in pySpice.global_data.ANALYSIS_LIST:
 		print 'WARNING op not found in the netlist, doing OP automatically'
 	initial_state = single_solve(0)
@@ -18,8 +25,8 @@ def solve():
 			continue
 		else:
 			output = single_solve(instance)
-			#TO_DO, formatting the output
-			return output
+			watchpoint_data[instance.catagory] = output
+	return watchpoint_data
 
 def single_solve(analysis_instance):
 	#attention, here raise an critical question about python, that's whether the paramenter 
@@ -60,6 +67,8 @@ def single_solve(analysis_instance):
 		scan_bar = []
 		for cursor in analysis_instance.generator:
 			scan_bar.append(cursor)
+		#a bit messy, for raw_output is ndarray while scan_bar is list
+		#overlook for now
 		raw_output.append(scan_bar)
 		
 	return raw_output
