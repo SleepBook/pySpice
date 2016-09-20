@@ -12,6 +12,13 @@ def format(sample, filename):
 	f.write('OPERATING POINT\n')
 	f.write('*'*30)
 	f.write('\n')
+	for key in pySpice.global_data.NODE_TRANSLATION.keys():
+		f.write(key + ' ')
+	f.write('\n')
+	for index in pySpice.global_data.NODE_TRANSLATION.values():
+		f.write('%f '%pySpice.global_data.INIT_STATE[index])
+	f.write('\n')	
+	f.write('\n')
 
 	for item in pySpice.global_data.ANALYSIS_LIST:
 		if item == 1:
