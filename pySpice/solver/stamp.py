@@ -153,12 +153,19 @@ def make_generator(src, tran_gene):
 		return sin_generator(src.freq, src.vdd, src.vgnd, tran_gene)
 	elif src.catagory == 'pulse':
 		return pulse_generator(src.td, src.tr, src.pw, src.tf, src.per, src.vdd, src.vgnd, tran_gene)
-
+	elif src.catagory == 'stair':
+		return stair_generator(src.vdd, src.vgnd, src.up_moment, tran_gene)
 
 def sin_generator(freq, vdd, gnd, tran_gene):
 	for time in tran_gene:
 		yield math.sin(2*math.pi*freq*time)
 
+def stair_generator(vdd, gnd, up_moment, tran_gene):
+	for time in tran_gene:
+		if time < up_moment:
+			yield gnd
+		else:
+			yield vdd	
 
 def pulse_generator(td, tr, pw, tf, per, vdd, gnd, tran_gene):
 	for time in tran_gene:

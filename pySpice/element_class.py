@@ -102,6 +102,13 @@ class sin_src():
 		self.vgnd = vgnd
 		self.freq = freq
 
+class stair_src():
+	def __init__(self, vgnd, vdd, up_moment):
+		self.catagory = 'stair'
+		self.vdd = vdd
+		self.vgnd = vgnd
+		self.up_moment = up_moment
+
 
 #below are the class for analysis cmds
 class analysis_dc():

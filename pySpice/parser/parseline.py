@@ -146,7 +146,7 @@ def parse_element(raw_line, node_dim, branch_dim):
 				real = ac_mag * math.cos(math.pi * ac_phase/180)
 				imag = ac_mag * math.sin(math.pi * ac_phase/180)
 				temp.ac = complex(real, imag)
-			m = re.search("sin|exp|pulse",raw_line.lower())
+			m = re.search("sin|exp|pulse|stair",raw_line.lower())
 			if m != None:
 				buf = raw_line.lower()[m.span()[0]:] #assume this part must appear last
 				tf = parse_timefunc(buf)
@@ -165,6 +165,7 @@ def parse_timefunc(string):
 			temp = string.find(')')
 			string = string[:temp]
 		buf = string.split()
+		#here the time has a unit 's'
 		item = pulse_src(extract(buf[0]),extract(buf[1]), extract(buf[2][:-1]), extract(buf[3][:-1]), extract(buf[4][:-1]),extract(buf[5][:-1]), extract(buf[6][:-1]))
 		return item
 
@@ -182,6 +183,17 @@ def parse_timefunc(string):
 	elif re.match('exp',string) != None:
 		print "exp haven't support"
 		return -1
+
+	elif re.match('stair', string) != None:
+		string = string[5:]
+		temp = string.find('(')
+		if temp != -1:
+			string = string[temp+1:]
+			temp = string.find(')')
+			string = string[:temp]
+		buf = string.split()
+		item = stair_src(extract(buf[0]), extract(buf[1]), extract(buf[2][:-1]))
+		return item
 
 	else:
 		print "Unrecognied Time-Function Indep. Source"
