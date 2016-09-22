@@ -6,6 +6,7 @@ from itertools import tee
 import pySpice.global_data
 import numpy as np
 import math
+import pdb
 
 def solve():
 	"""

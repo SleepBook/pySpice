@@ -30,7 +30,7 @@ def test_solve_diode():
 if __name__ =='__main__':
 	reload(pySpice.global_data)
 	NETLIST_ROOT = 'data/sample_netlist/'
-	parser(NETLIST_ROOT + 'diode.sp')
+	parser(NETLIST_ROOT + 'rc.sp')
 	raw_output = solve()
 	format(raw_output, 'testout.ls')
 

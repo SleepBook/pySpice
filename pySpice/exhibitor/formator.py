@@ -10,15 +10,18 @@ def format(sample, filename):
 	f.write('*'*30)
 	f.write('\n')
 	f.write('OPERATING POINT\n')
-	f.write('*'*30)
+	f.write('-'*30)
 	f.write('\n')
 	for key in pySpice.global_data.NODE_TRANSLATION.keys():
 		f.write(key + ' ')
 	f.write('\n')
 	for index in pySpice.global_data.NODE_TRANSLATION.values():
 		f.write('%f '%pySpice.global_data.INIT_STATE[index])
-	f.write('\n')	
 	f.write('\n')
+	f.write('*'*30)
+	f.write('\n')
+	f.write('\n')
+	f.write('\n')	
 
 	for item in pySpice.global_data.ANALYSIS_LIST:
 		if item == 1:
@@ -33,7 +36,7 @@ def format(sample, filename):
 				f.write('DC SWEEP\n')
 			elif analysis_type == 'tran':
 				f.write('TRANSIENT ANALYSIS\n')
-			f.write('*'*30)
+			f.write('-'*30)
 			f.write('\n')
 
 			output = data_provider(
@@ -47,8 +50,15 @@ def format(sample, filename):
 					if i == 0:
 						f.write(element+' ')
 					else:
-						f.write('%f '%element)
+						if abs(element) < 1e03 and abs(element) > 1e-03:
+							f.write('%4f '%element)
+						else:
+							f.write('%.3e '%element)
 				f.write('\n')
+			f.write('*'*30)
+			f.write('\n')
+			f.write('\n')
+			f.write('\n')
 	f.close()
 	return 0
 
