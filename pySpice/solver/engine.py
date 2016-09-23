@@ -102,12 +102,12 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 					previous_admitance = state_previous[i][2]
 					previous_bias = state_previous[i][3]						
 
-					MNA[element.loc_p, element.loc_p] += admitance - previous_admitance
-					MNA[element.loc_p, element.loc_n] += 0 - admitance + previous_admitance
-					MNA[element.loc_n, element.loc_p] += 0 - admitance + previous_admitance
-					MNA[element.loc_n, element.loc_n] += admitance - previous_admitance
-					RHS[element.loc_p] += 0 - bias + previous_bias
-					RHS[element.loc_n] += bias - previous_bias
+					MNA[element.loc_p, element.loc_p] += admitance
+					MNA[element.loc_p, element.loc_n] += 0 - admitance
+					MNA[element.loc_n, element.loc_p] += 0 - admitance 
+					MNA[element.loc_n, element.loc_n] += admitance
+					RHS[element.loc_p] += 0 - bias
+					RHS[element.loc_n] += bias
 					state_previous[i][2] = admitance
 					state_previous[i][3] = bias
 
@@ -119,6 +119,13 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 
 			for i, element in enumerate(converge_list):
 				if element.catagory == 'd':
+					MNA[element.loc_p, element.loc_p] -= admitance 
+					MNA[element.loc_p, element.loc_n] -= 0 - admitance 
+					MNA[element.loc_n, element.loc_p] -= 0 - admitance
+					MNA[element.loc_n, element.loc_n] -= admitance
+					RHS[element.loc_p] -= 0 - bias
+					RHS[element.loc_n] -= bias
+
 					cross_voltage = local_ans[element.loc_p] - local_ans[element.loc_n]
 					if element.model == 'diode':
 						current = exp(40*cross_voltage) - 1
@@ -126,7 +133,7 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 						print 'not support other diode model currently'
 
 					#pdb.set_trace()
-					if abs((cross_voltage - state_previous[i][0])) <= pySpice.global_data.CONVERGE_CRITERIA:
+					if abs((cross_voltage - state_previous[i][0])) <= pySpice.global_data.CONVERGE_CRITERIA and abs((current - state_previous[i][1])) <= pySpice.global_data.CONVERGE_CRITERIA:
 						converge_indicator[i] = 1
 			
 					state_previous[i][0] = cross_voltage
@@ -135,7 +142,7 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 				elif element.catagory == 'm':
 					pass
 					#haven't support mosfet yet
-		pdb.set_trace()
+		#pdb.set_trace()
 		return local_ans
 
 	else:
