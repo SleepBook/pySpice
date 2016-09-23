@@ -158,7 +158,9 @@ def make_generator(src, tran_gene):
 
 def sin_generator(freq, vdd, gnd, tran_gene):
 	for time in tran_gene:
-		yield math.sin(2*math.pi*freq*time)
+		amp = (vdd - gnd)/2.0
+		bias = (vdd + gnd)/2.0
+		yield amp*math.sin(2*math.pi*freq*time) + bias
 
 def stair_generator(vdd, gnd, up_moment, tran_gene):
 	for time in tran_gene:

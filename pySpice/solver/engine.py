@@ -88,12 +88,13 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 				pass
 
 		while (0 in converge_indicator):
+			#pdb.set_trace()
 			for i,element in enumerate(converge_list):
 				if element.catagory == 'd':
 					if element.model == 'diode':
 						#i think lamda function should fit in here
 						#admitance =
-						admitance =  40*exp(40*state_previous[i][0])
+						admitance = (40*exp(40*state_previous[i][0]))
 						bias = state_previous[i][1] - admitance*state_previous[i][0]
 					else:
 						#other model
@@ -112,7 +113,7 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 
 				elif element.catagory == 'm':
 					pass
-					
+			#pdb.set_trace()
 			local_ans = np.linalg.solve(MNA[1:,1:], RHS[1:])
 			local_ans = np.insert(local_ans, 0, 0.0)
 
@@ -123,7 +124,9 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 						current = exp(40*cross_voltage) - 1
 					else:
 						print 'not support other diode model currently'
-					if abs(cross_voltage - state_previous[i][0]) <= pySpice.global_data.CONVERGE_CRITERIA:
+
+					#pdb.set_trace()
+					if abs((cross_voltage - state_previous[i][0])) <= pySpice.global_data.CONVERGE_CRITERIA:
 						converge_indicator[i] = 1
 			
 					state_previous[i][0] = cross_voltage
@@ -132,6 +135,7 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 				elif element.catagory == 'm':
 					pass
 					#haven't support mosfet yet
+		pdb.set_trace()
 		return local_ans
 
 	else:
