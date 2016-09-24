@@ -303,19 +303,3 @@ def parse_ctrl(raw_line):
 			else:
 				print 'error'
 
-
-		
-
-			
-					
-					
-						
-		
-		
-	
-				
-				
-		
-	
-
-
