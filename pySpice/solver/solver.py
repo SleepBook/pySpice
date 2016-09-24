@@ -54,7 +54,6 @@ def single_solve(analysis_instance):
 		ANS = np.zeros((pySpice.global_data.MNA_dim,), dtype=np.double)
 
 	sweep_flag, sweep_list, converge_flag, converge_list = stamp(analysis_type, analysis_instance, MNA, RHS)
-
 	if analysis_type == 'op':
 		raw_output = solve_engine(0, [], converge_flag, converge_list, 0, MNA, RHS, ANS)
 	elif analysis_type == 'ac':

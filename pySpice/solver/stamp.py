@@ -77,7 +77,12 @@ def stamp(analysis_type, analysis_instance, MNA, RHS):
 
 		elif element.catagory == 'c' or element.catagory == 'l':
 			if analysis_type == 'dc' or analysis_type == 'op':
-				continue
+				if element.catagory == 'l':
+					MNA[element.loc_p, element.branch] += 1
+					MNA[element.loc_n, element.branch] += 0-1
+					MNA[element.branch, element.loc_p] += 1
+					MNA[element.branch, element.loc_n] += 0-1
+					
 			elif analysis_type == 'ac':
 				sweep_flag = 1
 				if element.catagory == 'c':

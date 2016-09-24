@@ -27,6 +27,13 @@ def test_solve_diode():
 	parser(NETLIST_ROOT + 'diode.sp')
 	raw_output = single_solve(pySpice.global_data.ANALYSIS_LIST[0])
 	
+def test_solve_rl():
+	reload(pySpice.global_data)
+	NETLIST_ROOT = 'data/sample_netlist/'
+	parser(NETLIST_ROOT + 'rl.sp')
+	raw_output = solve()
+	format(raw_output, 'testout.ls')
+
 if __name__ =='__main__':
 	reload(pySpice.global_data)
 	NETLIST_ROOT = 'data/sample_netlist/'
