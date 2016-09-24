@@ -1,12 +1,13 @@
 test for the engine utility on linear circuit
 
-VS 1 0 1 AC 1 SIN(0 2 1K)
+VS 1 0 1 AC 1 SIN(-1 1 1X)
 R1 1 2 5
-L1 3 0 1
-C1 2 3 1
+L1 3 0 1u
+C1 2 3 1u
 
-.AC LIN 10 1k 2k
-.TRAN 1NS 10NS
-.PRINT AC VM(3) VM(0)
-.PLOT TRAN V(3)
+.OP
+.AC LIN 10K 800K 1.2X
+.TRAN 1NS 3000NS
+.PRINT AC IM(VS)
+.PLOT TRAN V(1) I(VS)
 .END

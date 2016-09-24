@@ -135,7 +135,7 @@ def parse_element(raw_line, node_dim, branch_dim):
 				if m!= None:
 					temp.value = extract(line[3])
 
-			m = re.search("ac\s+[0-9]+[numkxg]?\s+[0-9]*", raw_line.lower())
+			m = re.search("ac\s+[0-9]+\.?[0-9]*[numkxg]?\s+[0-9]*\.?[0-9]*", raw_line.lower())
 			if m != None:
 				buf = m.group().split()
 				num = len(buf)
