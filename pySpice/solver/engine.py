@@ -84,10 +84,12 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 				#state_previous.append([0,0,40,0]) this is actually wrong, the circuit will never start
 				state_previous.append([0,0,0,0])
 				#rerpesent voltage cross, current, previous_admitance, previous_bias respectively
-			elif element.catagory == 'm':
-				pass
+			elif element.catagory == 'mos':
+				state_previous.append([1.8,0.1,0,0,0])
+				#represent Vgs Vds Id Ggs Gds
 
 		while (0 in converge_indicator):
+			print 'iter once'
 			#pdb.set_trace()
 			for i,element in enumerate(converge_list):
 				if element.catagory == 'd':
@@ -111,8 +113,56 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 					state_previous[i][2] = admitance
 					state_previous[i][3] = bias
 
-				elif element.catagory == 'm':
-					pass
+				elif element.catagory == 'mos':					
+					vgs = state_previous[i][0]
+					vds = state_previous[i][1]
+					if element.model == 'nmos':
+						vth = pySpice.global_data.VTH_NMOS
+						kn = pySpice.global_data.K_NMOS
+						lamda = pySpice.global_data.LAMDA_NMOS
+						if vgs < vth:
+							region = 0
+						elif vds < (vgs - vth):
+							region = 1
+						elif vds > (vgs - vth):
+							region = 2
+					elif element.model == 'pmos':
+						vth = pySpice.global_data.VTH_PMOS
+						kp = pySpice.global_data.K_PMOS
+						lamda = pySpice.global_data.LAMDA_PMOS
+						if vgs - vth > 0:
+							region = 0
+						elif vds < vgs - vth:
+							region = 2
+						elif vds > vgs - vth:
+							region = 1
+
+					if region == 0:
+						Ggs = 0
+						Gds = 0
+						Id = 0
+						bias = 0
+					elif region == 1:
+						Ggs = kn* element.w * vds*(1+ lamda*vds)/element.l
+						Gds = kn*element.w*(2*(vgs-vth)*(1+2*lamda*vds)-2*vds-3*lamda*pow(vds,2))/(2*element.l)
+						Id = kn*element.w*(2*(vgs-vth)*vds - pow(vds,2))*(1+lamda*vds)/(element.l * 2)
+						bias = Id - (Ggs*vgs + Gds*vds)
+
+					elif region == 2:
+						Ggs = kn * element.w *(1+lamda*vds)*(vgs - vth)/element.l
+						Gds = kn * element.w * pow((vgs - vth),2) * lamda/(2*element.l)
+						Id = kn*element.w*pow((vgs-vth),2)*lamda/(2*element.l)
+						bias = Id - (Ggs*vgs + Gds*vds)					
+
+					MNA[element.loc_d, element.loc_d] += Gds
+					MNA[element.loc_d, element.loc_s] += 0-Gds-Ggs
+					MNA[element.loc_d, element.loc_g] += Ggs
+					MNA[element.loc_s, element.loc_d] += 0-Gds
+					MNA[element.loc_s, element.loc_s] += Gds + Ggs
+					MNA[element.loc_s, element.loc_g] += 0-Ggs
+					RHS[element.loc_d] += 0-bias
+					RHS[element.loc_s] += bias
+
 			#pdb.set_trace()
 			local_ans = np.linalg.solve(MNA[1:,1:], RHS[1:])
 			local_ans = np.insert(local_ans, 0, 0.0)
@@ -139,9 +189,26 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 					state_previous[i][0] = cross_voltage
 					state_previous[i][1] = current
 
-				elif element.catagory == 'm':
-					pass
-					#haven't support mosfet yet
+				elif element.catagory == 'mos':
+					MNA[element.loc_d, element.loc_d] -= Gds
+					MNA[element.loc_d, element.loc_s] -= 0-Gds-Ggs
+					MNA[element.loc_d, element.loc_g] -= Ggs
+					MNA[element.loc_s, element.loc_d] -= 0-Gds
+					MNA[element.loc_s, element.loc_s] -= Gds + Ggs
+					MNA[element.loc_s, element.loc_g] -= 0-Ggs
+					RHS[element.loc_d] -= 0-bias
+					RHS[element.loc_s] -= bias
+					
+					vgs_new = local_ans[element.loc_g] - local_ans[element.loc_s]
+					vds_new = local_ans[element.loc_d] - local_ans[element.loc_s]
+
+					if abs(vgs_new - vgs) <= pySpice.global_data.CONVERGE_CRITERIA and abs(vds_new - vds) <= pySpice.global_data.CONVERGE_CRITERIA:
+						converge_indicator[i] = 1
+
+					#pdb.set_trace()
+					state_previous[i][0] = vgs_new
+					state_previous[i][1] = vds_new
+
 		#pdb.set_trace()
 		return local_ans
 

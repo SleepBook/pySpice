@@ -71,6 +71,7 @@ class diode(ele_2port):
 
 class mos():
 	def __init__(self, name, model, loc_d, loc_g, loc_s, loc_b):
+		self.catagory = 'mos'
 		self.name = name
 		self.model = model
 		self.loc_d = loc_d
@@ -79,9 +80,10 @@ class mos():
 		self.loc_b = loc_b
 		self.w = 0
 		self.l = 0
+		self.branch_flag = 0
 
 class pulse_src():
-	def __init__(self, vdd, vgnd, td, tr, tf, pw, per):
+	def __init__(self, vgnd, vdd, td, tr, tf, pw, per):
 		self.catagory = 'pulse'
 		self.vdd = vdd
 		self.vgnd = vgnd

@@ -32,7 +32,7 @@ def analysis_plot(section):
 			data = line.split()
 			name = data[0]
 			sub = plt.subplot()
-			sub.set_xscale('log')
+			#sub.set_xscale('log')
 			sub.plot(scanbar,data[1:],'o-')
 	fig.show()
 

@@ -136,6 +136,12 @@ def stamp(analysis_type, analysis_instance, MNA, RHS):
 				converge_flag += 1
 				converge_list.append(element)
 				#the actual stamping work for diode in transfered into the engine:state_definer
+		elif element.catagory == 'mos':
+			if analysis_type == 'ac':
+				pass
+			else:
+				converge_flag += 1
+				converge_list.append(element)
 
 				
 	if analysis_type == 'dc':
@@ -185,7 +191,7 @@ def pulse_generator(td, tr, pw, tf, per, vdd, gnd, tran_gene):
 			elif time >= tr and time <(tr+pw):
 				yield vdd
 			elif time >= (tr+pw) and time <(tr+pw+tf):
-				yield vdd - time * (vdd - gnd)/tf
+				yield vdd + (time - tr - pw) * (gnd - vdd)/tf
 			else:
 				yield gnd
 
