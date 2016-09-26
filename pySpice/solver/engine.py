@@ -85,8 +85,12 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 				state_previous.append([0,0,0,0])
 				#rerpesent voltage cross, current, previous_admitance, previous_bias respectively
 			elif element.catagory == 'mos':
-				state_previous.append([1.8,0.1,0,0,0])
-				#represent Vgs Vds Id Ggs Gds
+				if element.model == 'pmos':
+					state_previous.append([0,0,0,0,0])
+					#state_previous.append([0,-0.1,0,0,0])
+					#represent Vgs Vds Id Ggs Gds
+				elif element.model == 'nmos':
+					state_previous.append([1.8,0.1,0,0,0])
 
 		while (0 in converge_indicator):
 			print 'iter once'
@@ -118,7 +122,7 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 					vds = state_previous[i][1]
 					if element.model == 'nmos':
 						vth = pySpice.global_data.VTH_NMOS
-						kn = pySpice.global_data.K_NMOS
+						k = pySpice.global_data.K_NMOS
 						lamda = pySpice.global_data.LAMDA_NMOS
 						if vgs < vth:
 							region = 0
@@ -128,7 +132,7 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 							region = 2
 					elif element.model == 'pmos':
 						vth = pySpice.global_data.VTH_PMOS
-						kp = pySpice.global_data.K_PMOS
+						k = pySpice.global_data.K_PMOS
 						lamda = pySpice.global_data.LAMDA_PMOS
 						if vgs - vth > 0:
 							region = 0
@@ -143,15 +147,15 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 						Id = 0
 						bias = 0
 					elif region == 1:
-						Ggs = kn* element.w * vds*(1+ lamda*vds)/element.l
-						Gds = kn*element.w*(2*(vgs-vth)*(1+2*lamda*vds)-2*vds-3*lamda*pow(vds,2))/(2*element.l)
-						Id = kn*element.w*(2*(vgs-vth)*vds - pow(vds,2))*(1+lamda*vds)/(element.l * 2)
+						Ggs = k* element.w * vds*(1+ lamda*vds)/element.l
+						Gds = k*element.w*(2*(vgs-vth)*(1+2*lamda*vds)-2*vds-3*lamda*pow(vds,2))/(2*element.l)
+						Id = k*element.w*(2*(vgs-vth)*vds - pow(vds,2))*(1+lamda*vds)/(element.l * 2)
 						bias = Id - (Ggs*vgs + Gds*vds)
 
 					elif region == 2:
-						Ggs = kn * element.w *(1+lamda*vds)*(vgs - vth)/element.l
-						Gds = kn * element.w * pow((vgs - vth),2) * lamda/(2*element.l)
-						Id = kn*element.w*pow((vgs-vth),2)*lamda/(2*element.l)
+						Ggs = k * element.w *(1+lamda*vds)*(vgs - vth)/element.l
+						Gds = k * element.w * pow((vgs - vth),2) * lamda/(2*element.l)
+						Id = k*element.w*pow((vgs-vth),2)*(1+lamda*vds)/(2*element.l)
 						bias = Id - (Ggs*vgs + Gds*vds)					
 
 					MNA[element.loc_d, element.loc_d] += Gds
