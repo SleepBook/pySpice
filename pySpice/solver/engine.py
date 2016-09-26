@@ -86,14 +86,14 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 				#rerpesent voltage cross, current, previous_admitance, previous_bias respectively
 			elif element.catagory == 'mos':
 				if element.model == 'pmos':
-					state_previous.append([0,0,0,0,0])
+					state_previous.append([-1.8,0,0,0,0])
 					#state_previous.append([0,-0.1,0,0,0])
 					#represent Vgs Vds Id Ggs Gds
 				elif element.model == 'nmos':
-					state_previous.append([1.8,0.1,0,0,0])
+					state_previous.append([1.8,1.8,0,0,0])
 
 		while (0 in converge_indicator):
-			print 'iter once'
+			print 'iter once'			
 			#pdb.set_trace()
 			for i,element in enumerate(converge_list):
 				if element.catagory == 'd':
@@ -120,6 +120,10 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 				elif element.catagory == 'mos':					
 					vgs = state_previous[i][0]
 					vds = state_previous[i][1]
+					if element.model == 'nmos' and vds < 0 :
+						vds = 0
+					elif element.model == 'pmos' and vds > 0:
+						vds = 0
 					if element.model == 'nmos':
 						vth = pySpice.global_data.VTH_NMOS
 						k = pySpice.global_data.K_NMOS
@@ -149,7 +153,10 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 					elif region == 1:
 						Ggs = k* element.w * vds*(1+ lamda*vds)/element.l
 						Gds = k*element.w*(2*(vgs-vth)*(1+2*lamda*vds)-2*vds-3*lamda*pow(vds,2))/(2*element.l)
-						Id = k*element.w*(2*(vgs-vth)*vds - pow(vds,2))*(1+lamda*vds)/(element.l * 2)
+						if vds>0:
+							Id = k*element.w*(2*(vgs-vth)*vds - pow(vds,2))*(1+lamda*vds)/(element.l * 2)
+						else:
+							Id = k*element.w*(2*(vgs-vth)*vds - pow(vds,2))/(element.l * 2)
 						bias = Id - (Ggs*vgs + Gds*vds)
 
 					elif region == 2:
