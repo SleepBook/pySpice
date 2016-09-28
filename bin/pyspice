@@ -1,0 +1,35 @@
+#!/usr/bin/python
+#the executable scripts for pySpice
+
+from pySpice.top import *
+from pySpice.exhibitor.plotter import *
+import sys, getopt
+
+if __name__ == '__main__':
+    opts, args = getopt.getopt(sys.argv[1:], 'hpo:', ['help','print','output='])
+    print_flag = 0
+    out_name = 'out.ls'
+    for k,v in opts:
+        if k in ('-h','--help'):
+            print "THis is a Ciruit Simulator Implement in Python"
+            print "Use 'pyspice netlistname' to simulate the circuit"
+            print "Use '-p/--print' to direct print the result after simulation"
+            print "Use '-o/--output' outfile name' to appoint the output filename. By default, the output file name would be out.ls"
+            exit(0)
+
+        elif k in ('-p','--print'):
+            print_flag = 1
+        elif k in ('-o', '--output'):
+            out_name = v
+
+    if len(args) != 1:
+        print "Invalid Pararmeter, Expecting One Argument of the Netlist File Name"
+        exit(-1)
+
+    solve_circuit(args[0],out_name)
+    if print_flag:
+        plot(out_name)
+
+    exit(0)
+        
+

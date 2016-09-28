@@ -1,0 +1,10 @@
+#!/usr/bin/python
+
+#this is a tool for view the output result of spice simulator
+
+from pySpice.exhibitor.plotter import *
+import sys
+
+if __name__ == '__main__':
+    plot(sys.argv[1])
+    exit(0)
