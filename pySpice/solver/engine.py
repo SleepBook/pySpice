@@ -85,16 +85,14 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 				state_previous.append([0,0,0,0])
 				#rerpesent voltage cross, current, previous_admitance, previous_bias respectively
 			elif element.catagory == 'mos':
-				if element.model == 'pmos':
-					state_previous.append([-1.8,0,0,0,0])
-					#state_previous.append([0,-0.1,0,0,0])
-					#represent Vgs Vds Id Ggs Gds
-				elif element.model == 'nmos':
-					state_previous.append([1.8,1.8,0,0,0])
+				state_previous.append([1,0,0,0,0])
+				#represent Vgs Vds Gds Ggs bias
 
 		while (0 in converge_indicator):
-			print 'iter once'			
-			#pdb.set_trace()
+			print 'iteronce'
+			for i in range(len(converge_indicator)):
+				converge_indicator[i] = 0			
+			
 			for i,element in enumerate(converge_list):
 				if element.catagory == 'd':
 					if element.model == 'diode':
@@ -105,9 +103,7 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 					else:
 						#other model
 						print 'not support other diode model currently'
-					previous_admitance = state_previous[i][2]
-					previous_bias = state_previous[i][3]						
-
+					
 					MNA[element.loc_p, element.loc_p] += admitance
 					MNA[element.loc_p, element.loc_n] += 0 - admitance
 					MNA[element.loc_n, element.loc_p] += 0 - admitance 
@@ -146,10 +142,10 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 							region = 1
 
 					if region == 0:
-						Ggs = 0
-						Gds = 0
-						Id = 0
-						bias = 0
+						Ggs = 0.0
+						Gds = 0.0
+						Id = 0.0
+						bias = 0.0
 					elif region == 1:
 						Ggs = k* element.w * vds*(1+ lamda*vds)/element.l
 						Gds = k*element.w*(2*(vgs-vth)*(1+2*lamda*vds)-2*vds-3*lamda*pow(vds,2))/(2*element.l)
@@ -174,12 +170,18 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 					RHS[element.loc_d] += 0-bias
 					RHS[element.loc_s] += bias
 
-			#pdb.set_trace()
+					state_previous[i][2] = Gds
+					state_previous[i][3] = Ggs
+					state_previous[i][4] = bias
+
 			local_ans = np.linalg.solve(MNA[1:,1:], RHS[1:])
 			local_ans = np.insert(local_ans, 0, 0.0)
 
 			for i, element in enumerate(converge_list):
 				if element.catagory == 'd':
+					admitance = state_previous[i][2]
+					bias = state_previous[i][3]
+
 					MNA[element.loc_p, element.loc_p] -= admitance 
 					MNA[element.loc_p, element.loc_n] -= 0 - admitance 
 					MNA[element.loc_n, element.loc_p] -= 0 - admitance
@@ -193,7 +195,6 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 					else:
 						print 'not support other diode model currently'
 
-					#pdb.set_trace()
 					if abs((cross_voltage - state_previous[i][0])) <= pySpice.global_data.CONVERGE_CRITERIA and abs((current - state_previous[i][1])) <= pySpice.global_data.CONVERGE_CRITERIA:
 						converge_indicator[i] = 1
 			
@@ -201,6 +202,12 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 					state_previous[i][1] = current
 
 				elif element.catagory == 'mos':
+					Gds = state_previous[i][2]
+					Ggs = state_previous[i][3]
+					bias = state_previous[i][4]
+					vgs = state_previous[i][0]
+					vds = state_previous[i][1]
+
 					MNA[element.loc_d, element.loc_d] -= Gds
 					MNA[element.loc_d, element.loc_s] -= 0-Gds-Ggs
 					MNA[element.loc_d, element.loc_g] -= Ggs
