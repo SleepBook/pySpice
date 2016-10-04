@@ -15,4 +15,7 @@ make.bat
 /build
 /_build
 /docs/figures
-/docs/documentation/_build
+#/docs/documentation/_build
+#!*.html
+#! /docs/documentation/_build/*.html
+#!*.html

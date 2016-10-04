@@ -1,0 +1,321 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pySpice.solver.stamp &mdash; pySpice 0.01 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.01',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pySpice 0.01 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pySpice.solver.stamp</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pySpice.global_data</span>
+<span class="kn">from</span> <span class="nn">pySpice.element_class</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">tee</span>
+<span class="kn">import</span> <span class="nn">pdb</span>
+
+<div class="viewcode-block" id="stamp"><a class="viewcode-back" href="../../../pySpice.solver.html#pySpice.solver.stamp.stamp">[docs]</a><span class="k">def</span> <span class="nf">stamp</span><span class="p">(</span><span class="n">analysis_type</span><span class="p">,</span> <span class="n">analysis_instance</span><span class="p">,</span> <span class="n">MNA</span><span class="p">,</span> <span class="n">RHS</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Generating MNA and RHS to Represent the Circuit</span>
+
+<span class="sd">	This function retrieve information from the internal structure to constitute MNA and RHS. It also collects neessary information for doing iterate and converge operations.</span>
+
+<span class="sd">	:param analysis_type: &#39;ac&#39;, &#39;dc&#39; or &#39;tran&#39;</span>
+<span class="sd">	:param analysis_instance: internal representation of an analysis command</span>
+<span class="sd">	:param MNA: an initialized matrix, with date type defined</span>
+<span class="sd">	:param RHS: an initialized vector, data type defined</span>
+<span class="sd">	:return:</span>
+<span class="sd">		+ **sweep_flag**: a bool flag, indicating if iterate meahanism needed to be actived in the engine.</span>
+<span class="sd">		+ **converge_flag**: a bool flag, indicating if converge iteration should be actived</span>
+<span class="sd">		+ **sweep_list**: a list of sweep_item. Each sweep_item contains the information indicating how the solve_engine should change the MNA and RHS in each step of the iteration.</span>
+<span class="sd">		+ **converge_list**: a list of the element whose beahvior is non-linear.</span>
+
+<span class="sd">	About the class *sweep_item*, it is comprised of two part: The second part is a generator. In each iteration, by calling the *.next()* method to this generator, it will give the value needed to be stamped in this iteration. The first part is a list of tuples, with each tuple&#39;s first element of a coordinate, indicating where to change the stamp. The second element to this tuple is a prefix, you need to multiply the value with this prefix to get the final value to be stamped in this position. Using generator is for memory reducing consideration.</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">sweep_flag</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">converge_flag</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">sweep_list</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">converge_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">ELEMENT_DICT</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+		<span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;r&#39;</span><span class="p">:</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">+=</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span> <span class="o">+=</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+
+		<span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;e&#39;</span><span class="p">:</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="mi">1</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="mi">1</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_ctrl_p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_ctrl_n</span><span class="p">]</span> <span class="o">+=</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+
+		<span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;f&#39;</span><span class="p">:</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_ctrl_branch</span><span class="p">]</span> <span class="o">+=</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_ctrl_branch</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+
+		<span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_ctrl_p</span><span class="p">]</span> <span class="o">+=</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_ctrl_n</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_ctrl_p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_ctrl_n</span><span class="p">]</span> <span class="o">+=</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+
+		<span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;h&#39;</span><span class="p">:</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="mi">1</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="mi">1</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_ctrl_branch</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+
+		<span class="c1">#stamping process varies with analysis type</span>
+		<span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;v&#39;</span><span class="p">:</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="mi">1</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+			<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="mi">1</span>
+			<span class="k">if</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;op&#39;</span> <span class="ow">or</span> <span class="p">(</span><span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;dc&#39;</span> <span class="ow">and</span> <span class="n">analysis_instance</span><span class="o">.</span><span class="n">swp_src</span> <span class="o">!=</span> <span class="n">element</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>				
+				<span class="n">RHS</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">]</span> <span class="o">+=</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+			<span class="k">elif</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;ac&#39;</span><span class="p">:</span>
+				<span class="n">RHS</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">]</span> <span class="o">+=</span> <span class="n">element</span><span class="o">.</span><span class="n">ac</span>
+			<span class="k">elif</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;tran&#39;</span><span class="p">:</span>
+				<span class="n">sweep_flag</span> <span class="o">=</span> <span class="mi">1</span>
+				<span class="n">coord</span> <span class="o">=</span> <span class="p">[((</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,),</span><span class="mi">1</span><span class="p">)]</span>
+				<span class="n">temp</span> <span class="o">=</span> <span class="n">sweep_item</span><span class="p">(</span><span class="s1">&#39;gen&#39;</span><span class="p">,</span><span class="n">coord</span><span class="p">)</span>
+				<span class="n">analysis_instance</span><span class="o">.</span><span class="n">generator</span><span class="p">,</span> <span class="n">temp_gene</span> <span class="o">=</span> <span class="n">tee</span><span class="p">(</span><span class="n">analysis_instance</span><span class="o">.</span><span class="n">generator</span><span class="p">)</span>
+				<span class="n">temp</span><span class="o">.</span><span class="n">generator</span> <span class="o">=</span> <span class="n">make_generator</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">tran</span><span class="p">,</span> <span class="n">temp_gene</span><span class="p">)</span>		
+				<span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>				
+
+		<span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;i&#39;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;op&#39;</span> <span class="ow">or</span> <span class="p">(</span><span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;tran&#39;</span> <span class="ow">and</span> <span class="n">analysis_instance</span><span class="o">.</span><span class="n">swp_src</span> <span class="o">!=</span> <span class="n">element</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+				<span class="n">RHS</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+				<span class="n">RHS</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span> <span class="o">+=</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+			<span class="k">elif</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;ac&#39;</span><span class="p">:</span>
+				<span class="n">RHS</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">element</span><span class="o">.</span><span class="n">ac</span>
+				<span class="n">RHS</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span> <span class="o">+=</span> <span class="n">element</span><span class="o">.</span><span class="n">ac</span>
+			<span class="k">elif</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;tran&#39;</span><span class="p">:</span>
+				<span class="n">sweep_flag</span> <span class="o">=</span> <span class="mi">1</span>
+				<span class="n">coord</span> <span class="o">=</span> <span class="p">[((</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,),</span><span class="mi">1</span><span class="p">),((</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,),</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+				<span class="n">temp</span> <span class="o">=</span> <span class="n">sweep_item</span><span class="p">(</span><span class="s1">&#39;gen&#39;</span><span class="p">,</span><span class="n">coord</span><span class="p">)</span>
+				<span class="n">analysis_instance</span><span class="o">.</span><span class="n">generator</span><span class="p">,</span> <span class="n">temp_gene</span> <span class="o">=</span> <span class="n">tee</span><span class="p">(</span><span class="n">analysis_instance</span><span class="o">.</span><span class="n">generator</span><span class="p">)</span>
+				<span class="n">temp</span><span class="o">.</span><span class="n">generator</span> <span class="o">=</span> <span class="n">make_generator</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">tran</span><span class="p">,</span> <span class="n">temp_gene</span><span class="p">)</span>
+				<span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+
+		<span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;c&#39;</span> <span class="ow">or</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;dc&#39;</span> <span class="ow">or</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;op&#39;</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span><span class="o">-</span><span class="mi">1</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span><span class="o">-</span><span class="mi">1</span>
+					
+			<span class="k">elif</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;ac&#39;</span><span class="p">:</span>
+				<span class="n">sweep_flag</span> <span class="o">=</span> <span class="mi">1</span>
+				<span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;c&#39;</span><span class="p">:</span>
+					<span class="n">admitance</span> <span class="o">=</span> <span class="p">((</span><span class="mi">0</span><span class="o">+</span><span class="mi">1j</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">element</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+					<span class="n">coord</span> <span class="o">=</span> <span class="p">[((</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">),</span><span class="n">admitance</span><span class="p">),</span> <span class="p">((</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">),</span><span class="mi">0</span><span class="o">-</span><span class="n">admitance</span><span class="p">),</span> \
+					<span class="p">((</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">),</span><span class="mi">0</span><span class="o">-</span><span class="n">admitance</span><span class="p">),</span> <span class="p">((</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">),</span><span class="n">admitance</span><span class="p">)]</span>
+				
+				<span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
+					<span class="n">admitance</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">((</span><span class="mi">0</span><span class="o">+</span><span class="mi">1j</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">element</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+					<span class="c1">#coord = [((element.loc_p, element.loc_p), admitance), ((element.loc_p, element.loc_n),0-admitance), \</span>
+					<span class="c1">#((element.loc_n, element.loc_p),0-admitance), ((element.loc_n, element.loc_n),admitance)]</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="o">-</span><span class="mi">1</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+					<span class="n">coord</span> <span class="o">=</span> <span class="p">[((</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">),</span> <span class="mi">0</span><span class="o">-</span><span class="n">admitance</span><span class="p">),</span> <span class="p">((</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">),</span> <span class="n">admitance</span><span class="p">)]</span>
+				<span class="n">temp</span> <span class="o">=</span> <span class="n">sweep_item</span><span class="p">(</span><span class="s1">&#39;gen&#39;</span><span class="p">,</span><span class="n">coord</span><span class="p">)</span>
+				<span class="n">analysis_instance</span><span class="o">.</span><span class="n">generator</span><span class="p">,</span> <span class="n">temp_gene</span> <span class="o">=</span> <span class="n">tee</span><span class="p">(</span><span class="n">analysis_instance</span><span class="o">.</span><span class="n">generator</span><span class="p">)</span>
+				<span class="n">temp</span><span class="o">.</span><span class="n">generator</span> <span class="o">=</span> <span class="n">temp_gene</span>
+				<span class="n">temp</span><span class="o">.</span><span class="n">update_src</span> <span class="o">=</span> <span class="mi">1</span>
+				<span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+
+
+			<span class="k">elif</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;tran&#39;</span><span class="p">:</span>
+				<span class="n">sweep_flag</span> <span class="o">=</span> <span class="mi">1</span>
+				<span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;c&#39;</span><span class="p">:</span>
+					<span class="n">value</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span><span class="o">/</span><span class="n">analysis_instance</span><span class="o">.</span><span class="n">step</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">+=</span> <span class="n">value</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">value</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">value</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span> <span class="o">+=</span> <span class="n">value</span>
+					<span class="n">coord</span> <span class="o">=</span> <span class="p">[((</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,),</span> <span class="n">value</span><span class="p">),</span> <span class="p">((</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,),</span><span class="mi">0</span><span class="o">-</span><span class="n">value</span><span class="p">)]</span>
+					<span class="n">update_src</span> <span class="o">=</span> <span class="p">[((</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,),</span> <span class="mi">1</span><span class="p">),</span> <span class="p">((</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,),</span> <span class="mi">0</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+				<span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
+					<span class="n">value</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span><span class="o">/</span><span class="n">analysis_instance</span><span class="o">.</span><span class="n">step</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span><span class="o">-</span><span class="mi">1</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span><span class="o">-</span><span class="mi">1</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span><span class="o">-</span><span class="n">value</span>
+					<span class="n">coord</span> <span class="o">=</span> <span class="p">[((</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,),</span><span class="mi">0</span><span class="o">-</span><span class="n">value</span><span class="p">)]</span>
+					<span class="n">update_src</span> <span class="o">=</span> <span class="p">[((</span><span class="n">element</span><span class="o">.</span><span class="n">branch</span><span class="p">,),</span><span class="mi">1</span><span class="p">)]</span>
+
+				<span class="n">temp</span> <span class="o">=</span> <span class="n">sweep_item</span><span class="p">(</span><span class="s1">&#39;upd&#39;</span><span class="p">,</span> <span class="n">coord</span><span class="p">)</span>	
+				<span class="n">temp</span><span class="o">.</span><span class="n">update_src</span> <span class="o">=</span> <span class="n">update_src</span>
+				<span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+			
+		<span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;d&#39;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;ac&#39;</span><span class="p">:</span>
+				<span class="k">pass</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">converge_flag</span> <span class="o">+=</span> <span class="mi">1</span>
+				<span class="n">converge_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+				<span class="c1">#the actual stamping work for diode in transfered into the engine:state_definer</span>
+		<span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;mos&#39;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;ac&#39;</span><span class="p">:</span>
+				<span class="k">pass</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">converge_flag</span> <span class="o">+=</span> <span class="mi">1</span>
+				<span class="n">converge_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+
+				
+	<span class="k">if</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;dc&#39;</span><span class="p">:</span>
+		<span class="n">sweep_flag</span> <span class="o">=</span> <span class="mi">1</span>
+		<span class="n">swp_src</span> <span class="o">=</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">ELEMENT_DICT</span><span class="p">[</span><span class="n">analysis_instance</span><span class="o">.</span><span class="n">swp_src</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">swp_src</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;v&#39;</span><span class="p">:</span>
+			<span class="n">coord</span> <span class="o">=</span> <span class="p">[((</span><span class="n">swp_src</span><span class="o">.</span><span class="n">branch</span><span class="p">,),</span><span class="mi">1</span><span class="p">)]</span>
+		<span class="k">elif</span> <span class="n">swp_src</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;i&#39;</span><span class="p">:</span>
+			<span class="n">coord</span> <span class="o">=</span> <span class="p">[((</span><span class="n">swp_src</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,),</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">((</span><span class="n">swp_src</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,),</span> <span class="mi">1</span><span class="p">)]</span>
+		<span class="n">temp</span> <span class="o">=</span> <span class="n">sweep_item</span><span class="p">(</span><span class="s1">&#39;gen&#39;</span><span class="p">,</span><span class="n">coord</span><span class="p">)</span>
+		<span class="n">analysis_instance</span><span class="o">.</span><span class="n">generator</span><span class="p">,</span> <span class="n">temp_gene</span> <span class="o">=</span> <span class="n">tee</span><span class="p">(</span><span class="n">analysis_instance</span><span class="o">.</span><span class="n">generator</span><span class="p">)</span>
+		<span class="n">temp</span><span class="o">.</span><span class="n">generator</span> <span class="o">=</span> <span class="n">temp_gene</span>
+		<span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">sweep_flag</span><span class="p">,</span> <span class="n">sweep_list</span><span class="p">,</span> <span class="n">converge_flag</span><span class="p">,</span> <span class="n">converge_list</span></div>
+
+
+<div class="viewcode-block" id="make_generator"><a class="viewcode-back" href="../../../pySpice.solver.html#pySpice.solver.stamp.make_generator">[docs]</a><span class="k">def</span> <span class="nf">make_generator</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">tran_gene</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Make Generator out of the  Transinent Stimulates</span>
+
+<span class="sd">	Because the stimulates for transinent analysis is defines with the voltage/current source, while the time step to transinent analysis is defined in the Transinent analysis command. It is not possible to make the generator describing the voltage/current at certain time point at parsing time. And this task in done here.</span>
+
+<span class="sd">	This function is the and encapsulation, according to the type of the time varient stimulates, the actually work is assigned to different sub-routines</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">src</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;sin&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">sin_generator</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">freq</span><span class="p">,</span> <span class="n">src</span><span class="o">.</span><span class="n">vdd</span><span class="p">,</span> <span class="n">src</span><span class="o">.</span><span class="n">vgnd</span><span class="p">,</span> <span class="n">tran_gene</span><span class="p">)</span>
+	<span class="k">elif</span> <span class="n">src</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;pulse&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">pulse_generator</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">td</span><span class="p">,</span> <span class="n">src</span><span class="o">.</span><span class="n">tr</span><span class="p">,</span> <span class="n">src</span><span class="o">.</span><span class="n">pw</span><span class="p">,</span> <span class="n">src</span><span class="o">.</span><span class="n">tf</span><span class="p">,</span> <span class="n">src</span><span class="o">.</span><span class="n">per</span><span class="p">,</span> <span class="n">src</span><span class="o">.</span><span class="n">vdd</span><span class="p">,</span> <span class="n">src</span><span class="o">.</span><span class="n">vgnd</span><span class="p">,</span> <span class="n">tran_gene</span><span class="p">)</span>
+	<span class="k">elif</span> <span class="n">src</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;stair&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">stair_generator</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">vdd</span><span class="p">,</span> <span class="n">src</span><span class="o">.</span><span class="n">vgnd</span><span class="p">,</span> <span class="n">src</span><span class="o">.</span><span class="n">up_moment</span><span class="p">,</span> <span class="n">tran_gene</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="sin_generator"><a class="viewcode-back" href="../../../pySpice.solver.html#pySpice.solver.stamp.sin_generator">[docs]</a><span class="k">def</span> <span class="nf">sin_generator</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">vdd</span><span class="p">,</span> <span class="n">gnd</span><span class="p">,</span> <span class="n">tran_gene</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Make generator describe sinusoidal variation</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="k">for</span> <span class="n">time</span> <span class="ow">in</span> <span class="n">tran_gene</span><span class="p">:</span>
+		<span class="n">amp</span> <span class="o">=</span> <span class="p">(</span><span class="n">vdd</span> <span class="o">-</span> <span class="n">gnd</span><span class="p">)</span><span class="o">/</span><span class="mf">2.0</span>
+		<span class="n">bias</span> <span class="o">=</span> <span class="p">(</span><span class="n">vdd</span> <span class="o">+</span> <span class="n">gnd</span><span class="p">)</span><span class="o">/</span><span class="mf">2.0</span>
+		<span class="k">yield</span> <span class="n">amp</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">freq</span><span class="o">*</span><span class="n">time</span><span class="p">)</span> <span class="o">+</span> <span class="n">bias</span></div>
+
+<div class="viewcode-block" id="stair_generator"><a class="viewcode-back" href="../../../pySpice.solver.html#pySpice.solver.stamp.stair_generator">[docs]</a><span class="k">def</span> <span class="nf">stair_generator</span><span class="p">(</span><span class="n">vdd</span><span class="p">,</span> <span class="n">gnd</span><span class="p">,</span> <span class="n">up_moment</span><span class="p">,</span> <span class="n">tran_gene</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">	Make genrator describing a step function</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">for</span> <span class="n">time</span> <span class="ow">in</span> <span class="n">tran_gene</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">time</span> <span class="o">&lt;</span> <span class="n">up_moment</span><span class="p">:</span>
+			<span class="k">yield</span> <span class="n">gnd</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">yield</span> <span class="n">vdd</span>	</div>
+
+<div class="viewcode-block" id="pulse_generator"><a class="viewcode-back" href="../../../pySpice.solver.html#pySpice.solver.stamp.pulse_generator">[docs]</a><span class="k">def</span> <span class="nf">pulse_generator</span><span class="p">(</span><span class="n">td</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="n">pw</span><span class="p">,</span> <span class="n">tf</span><span class="p">,</span> <span class="n">per</span><span class="p">,</span> <span class="n">vdd</span><span class="p">,</span> <span class="n">gnd</span><span class="p">,</span> <span class="n">tran_gene</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Make generator describing pulse, with rise and falls</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">for</span> <span class="n">time</span> <span class="ow">in</span> <span class="n">tran_gene</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">time</span> <span class="o">&lt;</span> <span class="n">td</span><span class="p">:</span>
+			<span class="k">yield</span> <span class="n">gnd</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">time</span> <span class="o">=</span> <span class="p">(</span><span class="n">time</span><span class="o">-</span><span class="n">td</span><span class="p">)</span> <span class="o">%</span> <span class="n">per</span>
+			<span class="k">if</span> <span class="n">time</span> <span class="o">&lt;</span> <span class="n">tr</span><span class="p">:</span>
+				<span class="k">yield</span> <span class="n">time</span> <span class="o">*</span> <span class="p">(</span><span class="n">vdd</span> <span class="o">-</span> <span class="n">gnd</span><span class="p">)</span><span class="o">/</span><span class="n">tr</span> <span class="o">+</span> <span class="n">gnd</span>
+			<span class="k">elif</span> <span class="n">time</span> <span class="o">&gt;=</span> <span class="n">tr</span> <span class="ow">and</span> <span class="n">time</span> <span class="o">&lt;</span><span class="p">(</span><span class="n">tr</span><span class="o">+</span><span class="n">pw</span><span class="p">):</span>
+				<span class="k">yield</span> <span class="n">vdd</span>
+			<span class="k">elif</span> <span class="n">time</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">tr</span><span class="o">+</span><span class="n">pw</span><span class="p">)</span> <span class="ow">and</span> <span class="n">time</span> <span class="o">&lt;</span><span class="p">(</span><span class="n">tr</span><span class="o">+</span><span class="n">pw</span><span class="o">+</span><span class="n">tf</span><span class="p">):</span>
+				<span class="k">yield</span> <span class="n">vdd</span> <span class="o">+</span> <span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="n">tr</span> <span class="o">-</span> <span class="n">pw</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">gnd</span> <span class="o">-</span> <span class="n">vdd</span><span class="p">)</span><span class="o">/</span><span class="n">tf</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">yield</span> <span class="n">gnd</span></div>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Wenqi Yin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

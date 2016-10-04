@@ -1,0 +1,258 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pySpice.solver package &mdash; pySpice 0.01 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.01',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pySpice 0.01 documentation" href="index.html" />
+    <link rel="up" title="pySpice package" href="pySpice.html" />
+    <link rel="next" title="pySpice.exhibitor package" href="pySpice.exhibitor.html" />
+    <link rel="prev" title="pySpice.parser package" href="pySpice.parser.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pyspice-solver-package">
+<h1>pySpice.solver package<a class="headerlink" href="#pyspice-solver-package" title="Permalink to this headline">¶</a></h1>
+<p>This is the core module to the program. Where the circuit&#8217;s states is solved. The method used here is called <em>Modified Node Analysis(MNA)</em>. For details about this method, please refer <a class="reference external" href="book.html">here</a>.</p>
+<div class="section" id="module-pySpice.solver.solver">
+<span id="pyspice-solver-solver-module"></span><h2>pySpice.solver.solver module<a class="headerlink" href="#module-pySpice.solver.solver" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pySpice.solver.solver.single_solve">
+<code class="descclassname">pySpice.solver.solver.</code><code class="descname">single_solve</code><span class="sig-paren">(</span><em>analysis_instance</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/solver/solver.html#single_solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.solver.solver.single_solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sub-Utility to <em>Solve</em> Function, Solving the States for a Single Analysis Type</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>analysis_instance</strong> &#8211; internal data structure representing the analysis commands</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A single frame of the output structure illustracted in the figure below</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pySpice.solver.solver.solve">
+<code class="descclassname">pySpice.solver.solver.</code><code class="descname">solve</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/solver/solver.html#solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.solver.solver.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Top Level Encapsulation of the Utilities to Determine the Circuit&#8217;s State</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return:</th><td class="field-body"><ul class="first last simple">
+<li>watchpoint_data: A 3-D array (illustrated in the figure below), if assume the three coordinate of this array to be output[z][x][y]. Then each slices of z direction represents the output of either DC/AC/TRAN analysis. Within each Z frame, the X direction represent the watchlist item which is parsed in parsing phase and the Y direction contains the values solved in each iteration.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="figure">
+<img alt="_images/solver_output.png" src="_images/solver_output.png" />
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pySpice.solver.stamp">
+<span id="pyspice-solver-stamp-module"></span><h2>pySpice.solver.stamp module<a class="headerlink" href="#module-pySpice.solver.stamp" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pySpice.solver.stamp.make_generator">
+<code class="descclassname">pySpice.solver.stamp.</code><code class="descname">make_generator</code><span class="sig-paren">(</span><em>src</em>, <em>tran_gene</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/solver/stamp.html#make_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.solver.stamp.make_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make Generator out of the  Transinent Stimulates</p>
+<p>Because the stimulates for transinent analysis is defines with the voltage/current source, while the time step to transinent analysis is defined in the Transinent analysis command. It is not possible to make the generator describing the voltage/current at certain time point at parsing time. And this task in done here.</p>
+<p>This function is the and encapsulation, according to the type of the time varient stimulates, the actually work is assigned to different sub-routines</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pySpice.solver.stamp.pulse_generator">
+<code class="descclassname">pySpice.solver.stamp.</code><code class="descname">pulse_generator</code><span class="sig-paren">(</span><em>td</em>, <em>tr</em>, <em>pw</em>, <em>tf</em>, <em>per</em>, <em>vdd</em>, <em>gnd</em>, <em>tran_gene</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/solver/stamp.html#pulse_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.solver.stamp.pulse_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make generator describing pulse, with rise and falls</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pySpice.solver.stamp.sin_generator">
+<code class="descclassname">pySpice.solver.stamp.</code><code class="descname">sin_generator</code><span class="sig-paren">(</span><em>freq</em>, <em>vdd</em>, <em>gnd</em>, <em>tran_gene</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/solver/stamp.html#sin_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.solver.stamp.sin_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make generator describe sinusoidal variation</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pySpice.solver.stamp.stair_generator">
+<code class="descclassname">pySpice.solver.stamp.</code><code class="descname">stair_generator</code><span class="sig-paren">(</span><em>vdd</em>, <em>gnd</em>, <em>up_moment</em>, <em>tran_gene</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/solver/stamp.html#stair_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.solver.stamp.stair_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make genrator describing a step function</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pySpice.solver.stamp.stamp">
+<code class="descclassname">pySpice.solver.stamp.</code><code class="descname">stamp</code><span class="sig-paren">(</span><em>analysis_type</em>, <em>analysis_instance</em>, <em>MNA</em>, <em>RHS</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/solver/stamp.html#stamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.solver.stamp.stamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generating MNA and RHS to Represent the Circuit</p>
+<p>This function retrieve information from the internal structure to constitute MNA and RHS. It also collects neessary information for doing iterate and converge operations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>analysis_type</strong> &#8211; &#8216;ac&#8217;, &#8216;dc&#8217; or &#8216;tran&#8217;</li>
+<li><strong>analysis_instance</strong> &#8211; internal representation of an analysis command</li>
+<li><strong>MNA</strong> &#8211; an initialized matrix, with date type defined</li>
+<li><strong>RHS</strong> &#8211; an initialized vector, data type defined</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>sweep_flag</strong>: a bool flag, indicating if iterate meahanism needed to be actived in the engine.</li>
+<li><strong>converge_flag</strong>: a bool flag, indicating if converge iteration should be actived</li>
+<li><strong>sweep_list</strong>: a list of sweep_item. Each sweep_item contains the information indicating how the solve_engine should change the MNA and RHS in each step of the iteration.</li>
+<li><strong>converge_list</strong>: a list of the element whose beahvior is non-linear.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>About the class <em>sweep_item</em>, it is comprised of two part: The second part is a generator. In each iteration, by calling the <em>.next()</em> method to this generator, it will give the value needed to be stamped in this iteration. The first part is a list of tuples, with each tuple&#8217;s first element of a coordinate, indicating where to change the stamp. The second element to this tuple is a prefix, you need to multiply the value with this prefix to get the final value to be stamped in this position. Using generator is for memory reducing consideration.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pySpice.solver.engine">
+<span id="pyspice-solver-engine-module"></span><h2>pySpice.solver.engine module<a class="headerlink" href="#module-pySpice.solver.engine" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pySpice.solver.engine.solve_engine">
+<code class="descclassname">pySpice.solver.engine.</code><code class="descname">solve_engine</code><span class="sig-paren">(</span><em>sweep_flag</em>, <em>sweep_list</em>, <em>converge_flag</em>, <em>converge_list</em>, <em>watch_list</em>, <em>MNA</em>, <em>RHS</em>, <em>ANS</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/solver/engine.html#solve_engine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.solver.engine.solve_engine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Top-Level Encapsulation of the Matrix Solving Utility</p>
+<p>This layer realizes the <em>iterate</em> operation support. This function controls to elicit the core matrix-solving utility at each step of the iteraion and at the same time change the stamping of MNA and RHS to represent different initial status of the circuit.</p>
+<p>An graphical illustration of this module can be found below</p>
+<div class="figure">
+<img alt="_images/engine.png" src="_images/engine.png" />
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sweep_flag</strong> &#8211; described at function stamp</li>
+<li><strong>converge_flag</strong> &#8211; described at function stamp</li>
+<li><strong>sweep_list</strong> &#8211; described at function stamp</li>
+<li><strong>converge_list</strong> &#8211; described at function stamp</li>
+<li><strong>watch_list</strong> &#8211; a list describe which node/branch&#8217;s value are of interest. When everytime the solution of the circuit is reached, only the data for these points will be kept.</li>
+<li><strong>MNA</strong> &#8211; stamped MNA</li>
+<li><strong>RHS</strong> &#8211; stamped RHS</li>
+<li><strong>ANS</strong> &#8211; The solution to the matrix equation. The reason for introduce it as a parameter is only for simplify the iteration process. Because for some element, the value to stamp for next iteration do not come from the generaor, but the answer of the previous iteration(like dynamic elements in transient analysis), so introducing such a parameter and set it&#8217;s initial value to 0 and avoid unnecessary branches.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The value of all sweep points to the nodes/branches appeared on the watch_list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pySpice.solver.engine.state_definer">
+<code class="descclassname">pySpice.solver.engine.</code><code class="descname">state_definer</code><span class="sig-paren">(</span><em>converge_flag</em>, <em>converge_list</em>, <em>MNA</em>, <em>RHS</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/solver/engine.html#state_definer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.solver.engine.state_definer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Work out the Answer to the matrix equation, make sure the answer converge to the real state</p>
+<p>An inner layer of the engine utility, it encapsualte the functionality to solve circuit state by working out the matrix equation. The mechanism to ensure the answer converge is included into this function. 
+: param : Stated in <em>solve_engine</em> function
+: return: the raw answer of the matrix equation. Thses values are picked out at the outter layer</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">pySpice.solver package</a><ul>
+<li><a class="reference internal" href="#module-pySpice.solver.solver">pySpice.solver.solver module</a></li>
+<li><a class="reference internal" href="#module-pySpice.solver.stamp">pySpice.solver.stamp module</a></li>
+<li><a class="reference internal" href="#module-pySpice.solver.engine">pySpice.solver.engine module</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">pySpice</a><ul>
+  <li><a href="pySpice.html">pySpice package</a><ul>
+      <li>Previous: <a href="pySpice.parser.html" title="previous chapter">pySpice.parser package</a></li>
+      <li>Next: <a href="pySpice.exhibitor.html" title="next chapter">pySpice.exhibitor package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pySpice.solver.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Wenqi Yin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/pySpice.solver.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

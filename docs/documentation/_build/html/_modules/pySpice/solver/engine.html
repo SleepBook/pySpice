@@ -1,0 +1,328 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pySpice.solver.engine &mdash; pySpice 0.01 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.01',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pySpice 0.01 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pySpice.solver.engine</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pySpice.global_data</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">exp</span>
+<span class="kn">import</span> <span class="nn">pdb</span>
+
+<div class="viewcode-block" id="solve_engine"><a class="viewcode-back" href="../../../pySpice.solver.html#pySpice.solver.engine.solve_engine">[docs]</a><span class="k">def</span> <span class="nf">solve_engine</span><span class="p">(</span><span class="n">sweep_flag</span><span class="p">,</span> <span class="n">sweep_list</span><span class="p">,</span> <span class="n">converge_flag</span><span class="p">,</span> <span class="n">converge_list</span><span class="p">,</span> <span class="n">watch_list</span><span class="p">,</span> <span class="n">MNA</span><span class="p">,</span> <span class="n">RHS</span><span class="p">,</span> <span class="n">ANS</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Top-Level Encapsulation of the Matrix Solving Utility</span>
+
+<span class="sd">	This layer realizes the *iterate* operation support. This function controls to elicit the core matrix-solving utility at each step of the iteraion and at the same time change the stamping of MNA and RHS to represent different initial status of the circuit. </span>
+
+<span class="sd">	An graphical illustration of this module can be found below</span>
+
+<span class="sd">	.. figure:: ../figures/engine.png</span>
+
+<span class="sd">	:param sweep_flag: described at function stamp</span>
+<span class="sd">	:param converge_flag: described at function stamp</span>
+<span class="sd">	:param sweep_list: described at function stamp</span>
+<span class="sd">	:param converge_list: described at function stamp</span>
+<span class="sd">	:param watch_list: a list describe which node/branch&#39;s value are of interest. When everytime the solution of the circuit is reached, only the data for these points will be kept.</span>
+<span class="sd">	:param MNA: stamped MNA</span>
+<span class="sd">	:param RHS: stamped RHS</span>
+<span class="sd">	:param ANS: The solution to the matrix equation. The reason for introduce it as a parameter is only for simplify the iteration process. Because for some element, the value to stamp for next iteration do not come from the generaor, but the answer of the previous iteration(like dynamic elements in transient analysis), so introducing such a parameter and set it&#39;s initial value to 0 and avoid unnecessary branches.</span>
+<span class="sd">	:return: The value of all sweep points to the nodes/branches appeared on the watch_list</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">watch_list</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+		<span class="n">state_log</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">watch_list</span><span class="p">)):</span>
+			<span class="n">state_log</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+
+	<span class="k">if</span> <span class="n">sweep_flag</span><span class="p">:</span>
+		<span class="n">value_previous</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sweep_list</span><span class="p">)):</span>
+			<span class="n">value_previous</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+		<span class="n">END_OF_SWEEP</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">while</span> <span class="mi">1</span><span class="p">:</span>	
+			<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sweep_item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sweep_list</span><span class="p">):</span>
+				<span class="k">if</span> <span class="n">sweep_item</span><span class="o">.</span><span class="n">switch</span> <span class="o">==</span> <span class="s1">&#39;gen&#39;</span><span class="p">:</span>
+					<span class="k">if</span> <span class="n">sweep_item</span><span class="o">.</span><span class="n">update_src</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+						<span class="k">try</span><span class="p">:</span>
+							<span class="n">value</span> <span class="o">=</span> <span class="n">sweep_item</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+						<span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+							<span class="n">END_OF_SWEEP</span> <span class="o">=</span> <span class="mi">1</span>
+							<span class="k">break</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="c1">#it&#39;s an ad-hoc remedy, in case the admitance of inductor is 1/f</span>
+						<span class="k">try</span><span class="p">:</span>
+							<span class="n">value</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="n">sweep_item</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+						<span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+							<span class="n">END_OF_SWEEP</span> <span class="o">=</span> <span class="mi">1</span>
+							<span class="k">break</span>
+				<span class="k">elif</span> <span class="n">sweep_item</span><span class="o">.</span><span class="n">switch</span> <span class="o">==</span> <span class="s1">&#39;upd&#39;</span><span class="p">:</span>
+					<span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
+					<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sweep_item</span><span class="o">.</span><span class="n">update_src</span><span class="p">)):</span>
+						<span class="n">value</span> <span class="o">=</span> <span class="n">value</span> <span class="o">+</span> <span class="n">ANS</span><span class="p">[</span><span class="n">sweep_item</span><span class="o">.</span><span class="n">update_src</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span><span class="o">*</span><span class="n">sweep_item</span><span class="o">.</span><span class="n">update_src</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+				
+				<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sweep_item</span><span class="o">.</span><span class="n">coord</span><span class="p">)):</span>
+					<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sweep_item</span><span class="o">.</span><span class="n">coord</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+						<span class="n">RHS</span><span class="p">[</span><span class="n">sweep_item</span><span class="o">.</span><span class="n">coord</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">value</span> <span class="o">-</span> <span class="n">value_previous</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="n">sweep_item</span><span class="o">.</span><span class="n">coord</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+					<span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">sweep_item</span><span class="o">.</span><span class="n">coord</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+						<span class="n">MNA</span><span class="p">[</span><span class="n">sweep_item</span><span class="o">.</span><span class="n">coord</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">sweep_item</span><span class="o">.</span><span class="n">coord</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">value</span> <span class="o">-</span> <span class="n">value_previous</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="n">sweep_item</span><span class="o">.</span><span class="n">coord</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+				<span class="n">value_previous</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+			<span class="k">if</span> <span class="n">END_OF_SWEEP</span><span class="p">:</span>
+				<span class="k">break</span>
+			<span class="n">ANS</span> <span class="o">=</span> <span class="n">state_definer</span><span class="p">(</span><span class="n">converge_flag</span><span class="p">,</span> <span class="n">converge_list</span><span class="p">,</span> <span class="n">MNA</span><span class="p">,</span> <span class="n">RHS</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">script</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">watch_list</span><span class="p">):</span>
+				<span class="n">state_log</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ANS</span><span class="p">[</span><span class="n">script</span><span class="p">])</span>
+		<span class="k">return</span>  <span class="n">state_log</span>
+
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">ANS</span> <span class="o">=</span> <span class="n">state_definer</span><span class="p">(</span><span class="n">converge_flag</span><span class="p">,</span> <span class="n">converge_list</span><span class="p">,</span> <span class="n">MNA</span><span class="p">,</span> <span class="n">RHS</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">ANS</span></div>
+
+
+<div class="viewcode-block" id="state_definer"><a class="viewcode-back" href="../../../pySpice.solver.html#pySpice.solver.engine.state_definer">[docs]</a><span class="k">def</span> <span class="nf">state_definer</span><span class="p">(</span><span class="n">converge_flag</span><span class="p">,</span> <span class="n">converge_list</span><span class="p">,</span> <span class="n">MNA</span><span class="p">,</span> <span class="n">RHS</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Work out the Answer to the matrix equation, make sure the answer converge to the real state</span>
+
+<span class="sd">	An inner layer of the engine utility, it encapsualte the functionality to solve circuit state by working out the matrix equation. The mechanism to ensure the answer converge is included into this function. </span>
+<span class="sd">	: param : Stated in *solve_engine* function</span>
+<span class="sd">	: return: the raw answer of the matrix equation. Thses values are picked out at the outter layer</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">converge_flag</span><span class="p">:</span>
+		<span class="n">converge_indicator</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">state_previous</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">converge_list</span><span class="p">:</span>
+			<span class="n">converge_indicator</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;d&#39;</span><span class="p">:</span>
+				<span class="c1">#state_previous.append([0,0,40,0]) this is actually wrong, the circuit will never start</span>
+				<span class="n">state_previous</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+				<span class="c1">#rerpesent voltage cross, current, previous_admitance, previous_bias respectively</span>
+			<span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;mos&#39;</span><span class="p">:</span>
+				<span class="n">state_previous</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+				<span class="c1">#represent Vgs Vds Gds Ggs bias</span>
+
+		<span class="k">while</span> <span class="p">(</span><span class="mi">0</span> <span class="ow">in</span> <span class="n">converge_indicator</span><span class="p">):</span>
+			<span class="k">print</span> <span class="s1">&#39;iteronce&#39;</span>
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">converge_indicator</span><span class="p">)):</span>
+				<span class="n">converge_indicator</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>			
+			
+			<span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">element</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">converge_list</span><span class="p">):</span>
+				<span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;d&#39;</span><span class="p">:</span>
+					<span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;diode&#39;</span><span class="p">:</span>
+						<span class="c1">#i think lamda function should fit in here</span>
+						<span class="c1">#admitance =</span>
+						<span class="n">admitance</span> <span class="o">=</span> <span class="p">(</span><span class="mi">40</span><span class="o">*</span><span class="n">exp</span><span class="p">(</span><span class="mi">40</span><span class="o">*</span><span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+						<span class="n">bias</span> <span class="o">=</span> <span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">admitance</span><span class="o">*</span><span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="c1">#other model</span>
+						<span class="k">print</span> <span class="s1">&#39;not support other diode model currently&#39;</span>
+					
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">+=</span> <span class="n">admitance</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">admitance</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">admitance</span> 
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span> <span class="o">+=</span> <span class="n">admitance</span>
+					<span class="n">RHS</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">bias</span>
+					<span class="n">RHS</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span> <span class="o">+=</span> <span class="n">bias</span>
+					<span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">admitance</span>
+					<span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">bias</span>
+
+				<span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;mos&#39;</span><span class="p">:</span>					
+					<span class="n">vgs</span> <span class="o">=</span> <span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+					<span class="n">vds</span> <span class="o">=</span> <span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+					<span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;nmos&#39;</span> <span class="ow">and</span> <span class="n">vds</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="p">:</span>
+						<span class="n">vds</span> <span class="o">=</span> <span class="mi">0</span>
+					<span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;pmos&#39;</span> <span class="ow">and</span> <span class="n">vds</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+						<span class="n">vds</span> <span class="o">=</span> <span class="mi">0</span>
+					<span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;nmos&#39;</span><span class="p">:</span>
+						<span class="n">vth</span> <span class="o">=</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">VTH_NMOS</span>
+						<span class="n">k</span> <span class="o">=</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">K_NMOS</span>
+						<span class="n">lamda</span> <span class="o">=</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">LAMDA_NMOS</span>
+						<span class="k">if</span> <span class="n">vgs</span> <span class="o">&lt;</span> <span class="n">vth</span><span class="p">:</span>
+							<span class="n">region</span> <span class="o">=</span> <span class="mi">0</span>
+						<span class="k">elif</span> <span class="n">vds</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">vgs</span> <span class="o">-</span> <span class="n">vth</span><span class="p">):</span>
+							<span class="n">region</span> <span class="o">=</span> <span class="mi">1</span>
+						<span class="k">elif</span> <span class="n">vds</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">vgs</span> <span class="o">-</span> <span class="n">vth</span><span class="p">):</span>
+							<span class="n">region</span> <span class="o">=</span> <span class="mi">2</span>
+					<span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;pmos&#39;</span><span class="p">:</span>
+						<span class="n">vth</span> <span class="o">=</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">VTH_PMOS</span>
+						<span class="n">k</span> <span class="o">=</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">K_PMOS</span>
+						<span class="n">lamda</span> <span class="o">=</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">LAMDA_PMOS</span>
+						<span class="k">if</span> <span class="n">vgs</span> <span class="o">-</span> <span class="n">vth</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+							<span class="n">region</span> <span class="o">=</span> <span class="mi">0</span>
+						<span class="k">elif</span> <span class="n">vds</span> <span class="o">&lt;</span> <span class="n">vgs</span> <span class="o">-</span> <span class="n">vth</span><span class="p">:</span>
+							<span class="n">region</span> <span class="o">=</span> <span class="mi">2</span>
+						<span class="k">elif</span> <span class="n">vds</span> <span class="o">&gt;</span> <span class="n">vgs</span> <span class="o">-</span> <span class="n">vth</span><span class="p">:</span>
+							<span class="n">region</span> <span class="o">=</span> <span class="mi">1</span>
+
+					<span class="k">if</span> <span class="n">region</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+						<span class="n">Ggs</span> <span class="o">=</span> <span class="mf">0.0</span>
+						<span class="n">Gds</span> <span class="o">=</span> <span class="mf">0.0</span>
+						<span class="n">Id</span> <span class="o">=</span> <span class="mf">0.0</span>
+						<span class="n">bias</span> <span class="o">=</span> <span class="mf">0.0</span>
+					<span class="k">elif</span> <span class="n">region</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+						<span class="n">Ggs</span> <span class="o">=</span> <span class="n">k</span><span class="o">*</span> <span class="n">element</span><span class="o">.</span><span class="n">w</span> <span class="o">*</span> <span class="n">vds</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span> <span class="n">lamda</span><span class="o">*</span><span class="n">vds</span><span class="p">)</span><span class="o">/</span><span class="n">element</span><span class="o">.</span><span class="n">l</span>
+						<span class="n">Gds</span> <span class="o">=</span> <span class="n">k</span><span class="o">*</span><span class="n">element</span><span class="o">.</span><span class="n">w</span><span class="o">*</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">vgs</span><span class="o">-</span><span class="n">vth</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">lamda</span><span class="o">*</span><span class="n">vds</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">vds</span><span class="o">-</span><span class="mi">3</span><span class="o">*</span><span class="n">lamda</span><span class="o">*</span><span class="nb">pow</span><span class="p">(</span><span class="n">vds</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">element</span><span class="o">.</span><span class="n">l</span><span class="p">)</span>
+						<span class="k">if</span> <span class="n">vds</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+							<span class="n">Id</span> <span class="o">=</span> <span class="n">k</span><span class="o">*</span><span class="n">element</span><span class="o">.</span><span class="n">w</span><span class="o">*</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">vgs</span><span class="o">-</span><span class="n">vth</span><span class="p">)</span><span class="o">*</span><span class="n">vds</span> <span class="o">-</span> <span class="nb">pow</span><span class="p">(</span><span class="n">vds</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">lamda</span><span class="o">*</span><span class="n">vds</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">l</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+						<span class="k">else</span><span class="p">:</span>
+							<span class="n">Id</span> <span class="o">=</span> <span class="n">k</span><span class="o">*</span><span class="n">element</span><span class="o">.</span><span class="n">w</span><span class="o">*</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">vgs</span><span class="o">-</span><span class="n">vth</span><span class="p">)</span><span class="o">*</span><span class="n">vds</span> <span class="o">-</span> <span class="nb">pow</span><span class="p">(</span><span class="n">vds</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">l</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+						<span class="n">bias</span> <span class="o">=</span> <span class="n">Id</span> <span class="o">-</span> <span class="p">(</span><span class="n">Ggs</span><span class="o">*</span><span class="n">vgs</span> <span class="o">+</span> <span class="n">Gds</span><span class="o">*</span><span class="n">vds</span><span class="p">)</span>
+
+					<span class="k">elif</span> <span class="n">region</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+						<span class="n">Ggs</span> <span class="o">=</span> <span class="n">k</span> <span class="o">*</span> <span class="n">element</span><span class="o">.</span><span class="n">w</span> <span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">lamda</span><span class="o">*</span><span class="n">vds</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">vgs</span> <span class="o">-</span> <span class="n">vth</span><span class="p">)</span><span class="o">/</span><span class="n">element</span><span class="o">.</span><span class="n">l</span>
+						<span class="n">Gds</span> <span class="o">=</span> <span class="n">k</span> <span class="o">*</span> <span class="n">element</span><span class="o">.</span><span class="n">w</span> <span class="o">*</span> <span class="nb">pow</span><span class="p">((</span><span class="n">vgs</span> <span class="o">-</span> <span class="n">vth</span><span class="p">),</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">lamda</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">element</span><span class="o">.</span><span class="n">l</span><span class="p">)</span>
+						<span class="n">Id</span> <span class="o">=</span> <span class="n">k</span><span class="o">*</span><span class="n">element</span><span class="o">.</span><span class="n">w</span><span class="o">*</span><span class="nb">pow</span><span class="p">((</span><span class="n">vgs</span><span class="o">-</span><span class="n">vth</span><span class="p">),</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">lamda</span><span class="o">*</span><span class="n">vds</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">element</span><span class="o">.</span><span class="n">l</span><span class="p">)</span>
+						<span class="n">bias</span> <span class="o">=</span> <span class="n">Id</span> <span class="o">-</span> <span class="p">(</span><span class="n">Ggs</span><span class="o">*</span><span class="n">vgs</span> <span class="o">+</span> <span class="n">Gds</span><span class="o">*</span><span class="n">vds</span><span class="p">)</span>					
+
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_d</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_d</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Gds</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_d</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_s</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span><span class="o">-</span><span class="n">Gds</span><span class="o">-</span><span class="n">Ggs</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_d</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_g</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Ggs</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_s</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_d</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span><span class="o">-</span><span class="n">Gds</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_s</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_s</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Gds</span> <span class="o">+</span> <span class="n">Ggs</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_s</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_g</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span><span class="o">-</span><span class="n">Ggs</span>
+					<span class="n">RHS</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_d</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">0</span><span class="o">-</span><span class="n">bias</span>
+					<span class="n">RHS</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_s</span><span class="p">]</span> <span class="o">+=</span> <span class="n">bias</span>
+
+					<span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">Gds</span>
+					<span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ggs</span>
+					<span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">bias</span>
+
+			<span class="n">local_ans</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">MNA</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span><span class="mi">1</span><span class="p">:],</span> <span class="n">RHS</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+			<span class="n">local_ans</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">local_ans</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+			<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">converge_list</span><span class="p">):</span>
+				<span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;d&#39;</span><span class="p">:</span>
+					<span class="n">admitance</span> <span class="o">=</span> <span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+					<span class="n">bias</span> <span class="o">=</span> <span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">-=</span> <span class="n">admitance</span> 
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">admitance</span> 
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">admitance</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span> <span class="o">-=</span> <span class="n">admitance</span>
+					<span class="n">RHS</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">bias</span>
+					<span class="n">RHS</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span> <span class="o">-=</span> <span class="n">bias</span>
+
+					<span class="n">cross_voltage</span> <span class="o">=</span> <span class="n">local_ans</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_p</span><span class="p">]</span> <span class="o">-</span> <span class="n">local_ans</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_n</span><span class="p">]</span>
+					<span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;diode&#39;</span><span class="p">:</span>
+						<span class="n">current</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="mi">40</span><span class="o">*</span><span class="n">cross_voltage</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="k">print</span> <span class="s1">&#39;not support other diode model currently&#39;</span>
+
+					<span class="k">if</span> <span class="nb">abs</span><span class="p">((</span><span class="n">cross_voltage</span> <span class="o">-</span> <span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span> <span class="o">&lt;=</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">CONVERGE_CRITERIA</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">((</span><span class="n">current</span> <span class="o">-</span> <span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span> <span class="o">&lt;=</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">CONVERGE_CRITERIA</span><span class="p">:</span>
+						<span class="n">converge_indicator</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+			
+					<span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">cross_voltage</span>
+					<span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">current</span>
+
+				<span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;mos&#39;</span><span class="p">:</span>
+					<span class="n">Gds</span> <span class="o">=</span> <span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+					<span class="n">Ggs</span> <span class="o">=</span> <span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+					<span class="n">bias</span> <span class="o">=</span> <span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span>
+					<span class="n">vgs</span> <span class="o">=</span> <span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+					<span class="n">vds</span> <span class="o">=</span> <span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_d</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_d</span><span class="p">]</span> <span class="o">-=</span> <span class="n">Gds</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_d</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_s</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">0</span><span class="o">-</span><span class="n">Gds</span><span class="o">-</span><span class="n">Ggs</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_d</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_g</span><span class="p">]</span> <span class="o">-=</span> <span class="n">Ggs</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_s</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_d</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">0</span><span class="o">-</span><span class="n">Gds</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_s</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_s</span><span class="p">]</span> <span class="o">-=</span> <span class="n">Gds</span> <span class="o">+</span> <span class="n">Ggs</span>
+					<span class="n">MNA</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_s</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">loc_g</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">0</span><span class="o">-</span><span class="n">Ggs</span>
+					<span class="n">RHS</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_d</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">0</span><span class="o">-</span><span class="n">bias</span>
+					<span class="n">RHS</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_s</span><span class="p">]</span> <span class="o">-=</span> <span class="n">bias</span>
+					
+					<span class="n">vgs_new</span> <span class="o">=</span> <span class="n">local_ans</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_g</span><span class="p">]</span> <span class="o">-</span> <span class="n">local_ans</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_s</span><span class="p">]</span>
+					<span class="n">vds_new</span> <span class="o">=</span> <span class="n">local_ans</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_d</span><span class="p">]</span> <span class="o">-</span> <span class="n">local_ans</span><span class="p">[</span><span class="n">element</span><span class="o">.</span><span class="n">loc_s</span><span class="p">]</span>
+
+					<span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">vgs_new</span> <span class="o">-</span> <span class="n">vgs</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">CONVERGE_CRITERIA</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">vds_new</span> <span class="o">-</span> <span class="n">vds</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">CONVERGE_CRITERIA</span><span class="p">:</span>
+						<span class="n">converge_indicator</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+					<span class="c1">#pdb.set_trace()</span>
+					<span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">vgs_new</span>
+					<span class="n">state_previous</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vds_new</span>
+
+		<span class="c1">#pdb.set_trace()</span>
+		<span class="k">return</span> <span class="n">local_ans</span>
+
+	<span class="k">else</span><span class="p">:</span>
+		<span class="c1">#pdb.set_trace()</span>
+		<span class="n">local_ans</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">MNA</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span><span class="mi">1</span><span class="p">:],</span> <span class="n">RHS</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+		<span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">local_ans</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Wenqi Yin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
