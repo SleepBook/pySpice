@@ -8,12 +8,12 @@ Welcome to pySpice Documentation
 
 What's New
 -----------------------------------
-The Project Get Online on Oct 4, 2016
+The Project Gets Online on Oct 4, 2016
 
 
 `Introduction <intro.html>`_
 -----------------------------------
-There is also a `Book <book.html>`_, which offers more detailed explanation about the algorithm used in circuit simulation as well as the many other aspects of this project.
+There is also a `Book <book.html>`_, which offers more detailed explanation on the algorithm used in circuit simulation as well as the many other aspects towards this project.
 
 `Tutorial & Installation <usage.html>`_
 -----------------------------------
