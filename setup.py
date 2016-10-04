@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages()
+from setuptools import setup, find_packages
 
 setup(
     author = 'Wenqi Yin',
@@ -9,6 +9,7 @@ setup(
     description = 'spice simulator implemented in python',
     install_requires = ['nose', 'numpy','matplotlib'],
     packages = find_packages(),
+	package_data = {'pySpice': ['data/sample_netlist/*.sp']},
     scripts = ['bin/pyspice','bin/result_viewer'],
     name = 'pySpice'
     )

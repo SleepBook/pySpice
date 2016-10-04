@@ -25,7 +25,7 @@ def parser(netlist):
 		if line.lower() == '.end':
 			break
 		else:
-			if line[0] == '*' or line == '\n':
+			if line[0] == '*' or line == '\n' or line == '\r\n':
 				continue
 			elif line[0] == '.':
 				parse_ctrl(line)
