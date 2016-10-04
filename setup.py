@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages()
 
 setup(
     author = 'Wenqi Yin',
@@ -7,8 +7,8 @@ setup(
     license = 'MIT',
     version = '0.1',
     description = 'spice simulator implemented in python',
-    install_requires = ['nose', 'numpy','matplotlib','getopt'],
-    packages = ['pySpice','test'],
+    install_requires = ['nose', 'numpy','matplotlib'],
+    packages = find_packages(),
     scripts = ['bin/pyspice','bin/result_viewer'],
     name = 'pySpice'
     )
