@@ -1,0 +1,149 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation Guide &amp; Quick Start &mdash; pySpice 0.01 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.01',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pySpice 0.01 documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="installation-guide-quick-start">
+<h1>Installation Guide &amp; Quick Start<a class="headerlink" href="#installation-guide-quick-start" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>The project is packed and distributed using python&#8217;s setuptools. You can either clone the project from my <a class="reference external" href="https://github.com/SleepBook/pySpice">Github Repo</a> page or direct download the compressed file <a class="reference external" href="../../../../dist/pySpice-0.1.zip">here</a> (Not always up to data). Unzip it, then run:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+</pre></div>
+</div>
+<p>The package should be installed to correct position and be available in your python environment. (you may need super-user privilege for installation).</p>
+</div>
+<div class="section" id="run-the-program">
+<h2>Run the Program<a class="headerlink" href="#run-the-program" title="Permalink to this headline">¶</a></h2>
+<p>This project came with two scripts in stock. You can use these two scripts as command line programs. The first script, called <em>pyspice</em> is used to run the simulator and generate output, the syntax is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pyspice</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="o">/--</span><span class="n">help</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="o">/--</span><span class="nb">print</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span><span class="o">/--</span><span class="n">output</span> <span class="n">filename</span><span class="p">]</span> <span class="n">netlist</span>
+</pre></div>
+</div>
+<p>the two options, if -p or &#8211;print is specified, the result will be plot immediately after the output text file is generated. If the -o or &#8211;output flag is on and an valid output file name is given. The analysis result will be written into that file. Otherwise, <em>out.ls</em> is used as the default name. The -h option will give you a brief usage introduction.</p>
+<p>The other script called <em>result_viewer</em> is used to plot waveform from the analysis result. It simply equals runing the previous script without -p option and then call this script to plot the waveform.</p>
+</div>
+<div class="section" id="run-the-samples">
+<h2>Run the Samples<a class="headerlink" href="#run-the-samples" title="Permalink to this headline">¶</a></h2>
+<p>Several samples can be found under the <em>data/sample_netlist</em> folder. You can run the scripts on these circuits to see the result. Here I list some:</p>
+<div class="section" id="half-wave-ractifier-single-diode">
+<h3>Half Wave Ractifier(Single Diode)<a class="headerlink" href="#half-wave-ractifier-single-diode" title="Permalink to this headline">¶</a></h3>
+<div class="figure">
+<img alt="_images/diode.png" src="_images/diode.png" />
+</div>
+</div>
+<div class="section" id="cmos-inverter">
+<h3>CMOS Inverter<a class="headerlink" href="#cmos-inverter" title="Permalink to this headline">¶</a></h3>
+<div class="figure">
+<img alt="_images/inverter.png" src="_images/inverter.png" />
+</div>
+</div>
+<div class="section" id="cmos-buffer">
+<h3>CMOS Buffer<a class="headerlink" href="#cmos-buffer" title="Permalink to this headline">¶</a></h3>
+<div class="figure">
+<img alt="_images/buffer.png" src="_images/buffer.png" />
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation Guide &amp; Quick Start</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#run-the-program">Run the Program</a></li>
+<li><a class="reference internal" href="#run-the-samples">Run the Samples</a><ul>
+<li><a class="reference internal" href="#half-wave-ractifier-single-diode">Half Wave Ractifier(Single Diode)</a></li>
+<li><a class="reference internal" href="#cmos-inverter">CMOS Inverter</a></li>
+<li><a class="reference internal" href="#cmos-buffer">CMOS Buffer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/usage.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Wenqi Yin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/usage.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

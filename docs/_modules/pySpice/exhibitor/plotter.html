@@ -1,0 +1,133 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pySpice.exhibitor.plotter &mdash; pySpice 0.01 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.01',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pySpice 0.01 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pySpice.exhibitor.plotter</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">pdb</span>
+
+<div class="viewcode-block" id="plot"><a class="viewcode-back" href="../../../pySpice.exhibitor.html#pySpice.exhibitor.plotter.plot">[docs]</a><span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Top Level Encapsulation of the Plotting Utility</span>
+
+<span class="sd">	This module takes input from the text output of the *format()* function. So this can be seen is extension to the program, used to visualize the analysis result.</span>
+
+<span class="sd">	:param filename: a string of the filename of the text report</span>
+<span class="sd">	:output: several windows, each has the plot for a single kind of analysis</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+	<span class="n">filelines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+	<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+	<span class="n">seperator</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">filelines</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
+			<span class="n">seperator</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+	<span class="n">analysis_num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">seperator</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">analysis_num</span><span class="p">):</span>
+		<span class="n">analysis_plot</span><span class="p">(</span><span class="n">filelines</span><span class="p">[</span><span class="n">seperator</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="p">]:</span><span class="n">seperator</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]])</span>
+	<span class="nb">raw_input</span><span class="p">(</span><span class="s1">&#39;Press Any Character to Continue</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="analysis_plot"><a class="viewcode-back" href="../../../pySpice.exhibitor.html#pySpice.exhibitor.plotter.analysis_plot">[docs]</a><span class="k">def</span> <span class="nf">analysis_plot</span><span class="p">(</span><span class="n">section</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Sub-Routine to *Plot()* Function, Plot the Graphs for a Single Kind of Analysis</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">analysis_type</span> <span class="o">=</span> <span class="n">section</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+	<span class="k">if</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;OPERATING POINT</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+		<span class="k">return</span>
+	<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">analysis_type</span><span class="p">)</span>
+	<span class="n">scanbar</span> <span class="o">=</span> <span class="n">section</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+	<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">section</span><span class="p">[</span><span class="mi">4</span><span class="p">:]:</span>
+		<span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+			<span class="k">continue</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">data</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+			<span class="n">name</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+			<span class="n">sub</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">()</span>
+			<span class="c1">#sub.set_xscale(&#39;log&#39;)</span>
+			<span class="n">sub</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">scanbar</span><span class="p">,</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span><span class="s1">&#39;o-&#39;</span><span class="p">)</span>
+	<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+			
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Wenqi Yin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

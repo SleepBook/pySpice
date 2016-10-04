@@ -1,0 +1,284 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pySpice.element_class &mdash; pySpice 0.01 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.01',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pySpice 0.01 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pySpice.element_class</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">These classes works more like C Structure. It stores the information of the circuit element or SPICE commands into its different fields.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ele_2port"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.ele_2port">[docs]</a><span class="k">class</span> <span class="nc">ele_2port</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Base class for most dual-port circuit elements</span>
+
+<span class="sd">	:member:</span>
+<span class="sd">		+ catagory: describing what kind of device this instance belong to</span>
+<span class="sd">		+ loc_p: Positive port in internal representation(an integer)</span>
+<span class="sd">		+ branch_flag: whether this element need a variable to represent the current throught it.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">catagory</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">loc_p</span><span class="p">,</span><span class="n">loc_n</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">catagory</span> <span class="o">=</span> <span class="n">catagory</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">loc_p</span> <span class="o">=</span> <span class="n">loc_p</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">loc_n</span> <span class="o">=</span> <span class="n">loc_n</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">branch_flag</span> <span class="o">=</span> <span class="mi">0</span></div>
+		
+<div class="viewcode-block" id="resistor"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.resistor">[docs]</a><span class="k">class</span> <span class="nc">resistor</span><span class="p">(</span><span class="n">ele_2port</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">):</span>
+		<span class="n">ele_2port</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ic</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="capacitor"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.capacitor">[docs]</a><span class="k">class</span> <span class="nc">capacitor</span><span class="p">(</span><span class="n">ele_2port</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">):</span>
+		<span class="n">ele_2port</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="inductor"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.inductor">[docs]</a><span class="k">class</span> <span class="nc">inductor</span><span class="p">(</span><span class="n">ele_2port</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	:member:</span>
+<span class="sd">		+ branch: the internal variable represent the current throught it</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">branch_num</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">):</span>
+		<span class="n">ele_2port</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">branch</span> <span class="o">=</span> <span class="n">branch_num</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">branch_flag</span> <span class="o">=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="i_src"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.i_src">[docs]</a><span class="k">class</span> <span class="nc">i_src</span><span class="p">(</span><span class="n">ele_2port</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">):</span>
+		<span class="n">ele_2port</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ac</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">+</span> <span class="mi">0j</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">tran</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="v_src"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.v_src">[docs]</a><span class="k">class</span> <span class="nc">v_src</span><span class="p">(</span><span class="n">ele_2port</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">brch_num</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">):</span>
+		<span class="n">ele_2port</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">branch</span> <span class="o">=</span> <span class="n">brch_num</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">branch_flag</span> <span class="o">=</span> <span class="mi">1</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ac</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">+</span> <span class="mi">0j</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">tran</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="vcvs"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.vcvs">[docs]</a><span class="k">class</span> <span class="nc">vcvs</span><span class="p">(</span><span class="n">ele_2port</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loc_ctrl_p</span><span class="p">,</span> <span class="n">loc_ctrl_n</span><span class="p">,</span> <span class="n">brch_num</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">):</span>
+		<span class="n">ele_2port</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">loc_ctrl_p</span> <span class="o">=</span> <span class="n">loc_ctrl_p</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">loc_ctrl_n</span> <span class="o">=</span> <span class="n">loc_ctrl_n</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">branch</span> <span class="o">=</span> <span class="n">brch_num</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">branch_flag</span> <span class="o">=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="vccs"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.vccs">[docs]</a><span class="k">class</span> <span class="nc">vccs</span><span class="p">(</span><span class="n">ele_2port</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loc_ctrl_p</span><span class="p">,</span> <span class="n">loc_ctrl_n</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">):</span>
+		<span class="n">ele_2port</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">loc_ctrl_n</span> <span class="o">=</span> <span class="n">loc_ctrl_n</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">loc_ctrl_p</span> <span class="o">=</span> <span class="n">loc_ctrl_p</span></div>
+
+<div class="viewcode-block" id="cccs"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.cccs">[docs]</a><span class="k">class</span> <span class="nc">cccs</span><span class="p">(</span><span class="n">ele_2port</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loc_ctrl_brch</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">):</span>
+		<span class="n">ele_2port</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">loc_ctrl_branch</span> <span class="o">=</span> <span class="n">loc_ctrl_brch</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">branch_flag</span> <span class="o">=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="ccvs"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.ccvs">[docs]</a><span class="k">class</span> <span class="nc">ccvs</span><span class="p">(</span><span class="n">ele_2port</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">brch_num</span><span class="p">,</span> <span class="n">loc_ctrl_brch</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">):</span>
+		<span class="n">ele_2port</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">loc_ctrl_branch</span> <span class="o">=</span> <span class="n">loc_ctrl_brch</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">branch</span> <span class="o">=</span> <span class="n">brch_num</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">branch_flag</span> <span class="o">=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="diode"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.diode">[docs]</a><span class="k">class</span> <span class="nc">diode</span><span class="p">(</span><span class="n">ele_2port</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">):</span>
+		<span class="n">ele_2port</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">av</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ic</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="mos"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.mos">[docs]</a><span class="k">class</span> <span class="nc">mos</span><span class="p">():</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">loc_d</span><span class="p">,</span> <span class="n">loc_g</span><span class="p">,</span> <span class="n">loc_s</span><span class="p">,</span> <span class="n">loc_b</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">catagory</span> <span class="o">=</span> <span class="s1">&#39;mos&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">loc_d</span> <span class="o">=</span> <span class="n">loc_d</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">loc_g</span> <span class="o">=</span> <span class="n">loc_g</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">loc_s</span> <span class="o">=</span> <span class="n">loc_s</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">loc_b</span> <span class="o">=</span> <span class="n">loc_b</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">l</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">branch_flag</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="pulse_src"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.pulse_src">[docs]</a><span class="k">class</span> <span class="nc">pulse_src</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">	The meaning of these fields refer to this graph:</span>
+
+<span class="sd">	.. figure:: ../figures/SPICE_pulse.png</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vgnd</span><span class="p">,</span> <span class="n">vdd</span><span class="p">,</span> <span class="n">td</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="n">tf</span><span class="p">,</span> <span class="n">pw</span><span class="p">,</span> <span class="n">per</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">catagory</span> <span class="o">=</span> <span class="s1">&#39;pulse&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">vdd</span> <span class="o">=</span> <span class="n">vdd</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">vgnd</span> <span class="o">=</span> <span class="n">vgnd</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">td</span> <span class="o">=</span> <span class="n">td</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">tr</span> <span class="o">=</span> <span class="n">tr</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">tf</span> <span class="o">=</span> <span class="n">tf</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">pw</span> <span class="o">=</span> <span class="n">pw</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">per</span> <span class="o">=</span> <span class="n">per</span></div>
+
+<div class="viewcode-block" id="exp_src"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.exp_src">[docs]</a><span class="k">class</span> <span class="nc">exp_src</span><span class="p">():</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="sin_src"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.sin_src">[docs]</a><span class="k">class</span> <span class="nc">sin_src</span><span class="p">():</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vdd</span><span class="p">,</span> <span class="n">vgnd</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">catagory</span> <span class="o">=</span> <span class="s1">&#39;sin&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">vdd</span> <span class="o">=</span> <span class="n">vdd</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">vgnd</span> <span class="o">=</span> <span class="n">vgnd</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">=</span> <span class="n">freq</span></div>
+
+<div class="viewcode-block" id="stair_src"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.stair_src">[docs]</a><span class="k">class</span> <span class="nc">stair_src</span><span class="p">():</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vgnd</span><span class="p">,</span> <span class="n">vdd</span><span class="p">,</span> <span class="n">up_moment</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">catagory</span> <span class="o">=</span> <span class="s1">&#39;stair&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">vdd</span> <span class="o">=</span> <span class="n">vdd</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">vgnd</span> <span class="o">=</span> <span class="n">vgnd</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">up_moment</span> <span class="o">=</span> <span class="n">up_moment</span></div>
+
+
+<span class="c1">#below are the class for analysis cmds</span>
+<div class="viewcode-block" id="analysis_dc"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.analysis_dc">[docs]</a><span class="k">class</span> <span class="nc">analysis_dc</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	:member:</span>
+<span class="sd">		+ swp_src: the value of the sweep points are put into a generator</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">swp_src</span><span class="p">,</span> <span class="n">generator</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">catagory</span> <span class="o">=</span> <span class="s1">&#39;dc&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">swp_src</span> <span class="o">=</span> <span class="n">swp_src</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">generator</span> <span class="o">=</span> <span class="n">generator</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">double_scan_flag</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">swp_src2</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">generator2</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1">#run into this case from time to time, how to resolve?</span></div>
+
+<div class="viewcode-block" id="analysis_ac"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.analysis_ac">[docs]</a><span class="k">class</span> <span class="nc">analysis_ac</span><span class="p">():</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">generator</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">catagory</span> <span class="o">=</span> <span class="s1">&#39;ac&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">generator</span> <span class="o">=</span> <span class="n">generator</span></div>
+
+<div class="viewcode-block" id="analysis_tran"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.analysis_tran">[docs]</a><span class="k">class</span> <span class="nc">analysis_tran</span><span class="p">():</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">generator</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">catagory</span> <span class="o">=</span> <span class="s1">&#39;tran&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">generator</span> <span class="o">=</span> <span class="n">generator</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">=</span> <span class="n">step</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">uic_flag</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">show_start</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">max_step</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="print_item"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.print_item">[docs]</a><span class="k">class</span> <span class="nc">print_item</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	The PRINT/PLOT commands are parsed to the instance of this class</span>
+
+<span class="sd">	:member:</span>
+<span class="sd">		+ cmd: the original string describing the plot/print</span>
+<span class="sd">		+ ac_flag: whether it&#39;s an AC plot, because the print/plot command to AC need special process(they have another character noting to plot magnitude, phase or anything else</span>
+<span class="sd">		+ op_flag: some plot need to calculate the difference between two nodes. If so, this flag is setted.</span>
+<span class="sd">		+ op_list: document which two nodes need to do opeeration on</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cmd</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ac_flag</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">op_flag</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">op_list</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="sweep_item"><a class="viewcode-back" href="../../pySpice.html#pySpice.element_class.sweep_item">[docs]</a><span class="k">class</span> <span class="nc">sweep_item</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	The standard information package the stamp function pass to the engine module. Control the behavior of the engine</span>
+
+<span class="sd">	:member:</span>
+<span class="sd">		+ switch: a string either of &#39;gen&#39; or &#39;upd&#39;. If &#39;gen&#39; it tells the engine in each iteration the new stamp value come from a generator. Otherwise, the value get its update from the solution of previous iteration</span>
+<span class="sd">		+ coord: where the new stamp fit in</span>
+<span class="sd">		+ generator: the generator to offer the new value</span>
+<span class="sd">		+ updata_src: the coordinate where to retrieve the updata value</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">switch</span><span class="p">,</span> <span class="n">coord</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">switch</span> <span class="o">=</span> <span class="n">switch</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">coord</span> <span class="o">=</span> <span class="n">coord</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">generator</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">update_src</span> <span class="o">=</span> <span class="mi">0</span></div>
+		
+		
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Wenqi Yin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
