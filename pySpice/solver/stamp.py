@@ -8,19 +8,20 @@ def stamp(analysis_type, analysis_instance, MNA, RHS):
 	"""
 	Generating MNA and RHS to Represent the Circuit
 
-	This function retrieve information from the internal structure to constitute MNA and RHS. It also logs the information for doing iterate and converge operations.
+	This function retrieve information from the internal structure to constitute MNA and RHS. It also collects neessary information for doing iterate and converge operations.
 
 	:param analysis_type: 'ac', 'dc' or 'tran'
 	:param analysis_instance: internal representation of an analysis command
 	:param MNA: an initialized matrix, with date type defined
 	:param RHS: an initialized vector, data type defined
 	:return:
-		+ sweep_flag: a bool flag, indicating if iterate meahanism needed to be actived in the engine.
-		+ converge_flag: a bool flag, indicating if converge iteration should be actived
-		+ sweep_list: a list of sweep_item. Each sweep_item contains the information indicating how the solve_engine should change the MNA and RHS in each step of the iteration.
-		+ converge_list: a list of the element whose beahvior is non-linear.
+		+ **sweep_flag**: a bool flag, indicating if iterate meahanism needed to be actived in the engine.
+		+ **converge_flag**: a bool flag, indicating if converge iteration should be actived
+		+ **sweep_list**: a list of sweep_item. Each sweep_item contains the information indicating how the solve_engine should change the MNA and RHS in each step of the iteration.
+		+ **converge_list**: a list of the element whose beahvior is non-linear.
 
-	About the class sweep_item, it is comprised of two part:The second part is a generator. In each iteration, by calling the .next() method to this generator, it eill give the value needed to be stamped in in this iter. The first part is a list of tuples. each tuple's first element is a coordinate, indicating where to change the stamp. second element to this tuple is a prefix, you need to multiply the value released with this prefix to get the very value needed to be stamped in this very position. The usage of generator is too reduce memory consumption of the program 
+	About the class *sweep_item*, it is comprised of two part: The second part is a generator. In each iteration, by calling the *.next()* method to this generator, it will give the value needed to be stamped in this iteration. The first part is a list of tuples, with each tuple's first element of a coordinate, indicating where to change the stamp. The second element to this tuple is a prefix, you need to multiply the value with this prefix to get the final value to be stamped in this position. Using generator is for memory reducing consideration.
+
 	"""
 	sweep_flag = 0
 	converge_flag = 0

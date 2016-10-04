@@ -4,7 +4,7 @@ from pySpice.parser.internalize import internalize
 import pdb
 def parser(netlist):
 	"""
-    Top-Level Capsulation for Parsing Utilities
+    Top-Level Encapsulation for Parsing Utilities
 
     :returns:
         + *element_DICT*: A dictionary containing the structure instance representing the circuit elements. With the element's name as index

@@ -3,25 +3,25 @@ import numpy as np
 from math import exp
 import pdb
 
-"""
-This is the key module inside the solver utility
-"""
-
 def solve_engine(sweep_flag, sweep_list, converge_flag, converge_list, watch_list, MNA, RHS, ANS):
 	"""
-	Outtest Encapsulation of the Matrix Solving Utility
+	Top-Level Encapsulation of the Matrix Solving Utility
 
-	This layer realize the iterate operation support. This functino controls to elicit the core matrix-solving utility and at the same time change the stamping of MNA and RHS to get the status of the circuit at different sweep point in various analysis
+	This layer realizes the *iterate* operation support. This function controls to elicit the core matrix-solving utility at each step of the iteraion and at the same time change the stamping of MNA and RHS to represent different initial status of the circuit. 
 
-	: param sweep_flag: described at function stamp
-	: param converge_flag: described at function stamp
-	: param sweep_list: described at function stamp
-	: param converge_list: described at function stamp
-	: param watch_list: a list describe which node/branch's value are of interest. When everytime the solution of the circuit is reached, only the data for these points will be kept.
-	: param MNA: stamped MNA
-	: param RHS: stamped RHS
-	: param ANS: The solution to the matrix equation. The reason for introduce it as a parameter is only for simplify the iteration process. Because for some element, the value to stamp for next iteration do not come from the generaor, but the answer of the previous iteration(like dynamic elements in transient analysis), so introducing such a parameter and set it's initial value to 0 and avoid unnecessary branches.
-	: return: The value of all sweep points to the nodes/branches appeared on the watch_list
+	An graphical illustration of this module can be found below
+
+	.. figure:: ../figures/engine.png
+
+	:param sweep_flag: described at function stamp
+	:param converge_flag: described at function stamp
+	:param sweep_list: described at function stamp
+	:param converge_list: described at function stamp
+	:param watch_list: a list describe which node/branch's value are of interest. When everytime the solution of the circuit is reached, only the data for these points will be kept.
+	:param MNA: stamped MNA
+	:param RHS: stamped RHS
+	:param ANS: The solution to the matrix equation. The reason for introduce it as a parameter is only for simplify the iteration process. Because for some element, the value to stamp for next iteration do not come from the generaor, but the answer of the previous iteration(like dynamic elements in transient analysis), so introducing such a parameter and set it's initial value to 0 and avoid unnecessary branches.
+	:return: The value of all sweep points to the nodes/branches appeared on the watch_list
 	"""
 	if watch_list != 0:
 		state_log = []
@@ -77,8 +77,8 @@ def state_definer(converge_flag, converge_list, MNA, RHS):
 	"""
 	Work out the Answer to the matrix equation, make sure the answer converge to the real state
 
-	An inner layer of the engine utility, it encapsualte the functionality to solve circuit state by working the matrix equation. The mechanism to ensure the answer converge is included into this function. 
-	: param : all stated in the outer layer
+	An inner layer of the engine utility, it encapsualte the functionality to solve circuit state by working out the matrix equation. The mechanism to ensure the answer converge is included into this function. 
+	: param : Stated in *solve_engine* function
 	: return: the raw answer of the matrix equation. Thses values are picked out at the outter layer
 	"""
 	if converge_flag:

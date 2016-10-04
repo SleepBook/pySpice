@@ -72,12 +72,12 @@ def data_provider(analysis_type, cmd_list, watch_list, sample):
 	"""
 	Generating the Data for PRINT/PLOT Commands Using the Raw Data of the Status of the Points/Branches to watch_list
 
-	Also it re-arrange the data layout. So in the finally output, the first line is the sweep item. Following lines begins with the Print/Plot item's name and then it's values in consecutive sweep points.
+	Also it re-arrange the data layout. So in the finally output, the first line is the sweep item. Following lines begins with the PRINT/PLOT item's name and then it's values in consecutive sweep points.
 
 	:param analysis_type: either 'ac' 'dc' or 'tran'
 	:param cmd_list: a list containing  the print/plot items for this analysis
 	:param watch_list: the watch_list, stating which points/branches are of interest
-	:param sample: the output of solve() function
+	:param sample: the output of *solve()* function
 	:return: an list *output* containing the information for the values of the item appeared in the PRINT/PLOT commands.
 	"""
 	output = []

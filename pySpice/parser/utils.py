@@ -5,6 +5,7 @@ def extract(unit_value):
 	Extrace Spice Format Value
 	
 	The number used in Netlist often have a postfix unit, this function extrace this representation.
+
 	:param unit_value: value represent in SPICE Netlist fashion
 	:return: value in scientific representation
 	'''
@@ -33,7 +34,7 @@ def address_transform(label, node_dim):
 	'''
 	Transform External Node Name into Internal Node Representation
 
-	Basicly, it check whether the label has already assigned an internal, if so, just return this internal representation. Otherwise, generate a new internal node number and plus the total node_number by 1
+	Basically, it check whether the label has already assigned an internal, if so, it will just return this internal representation. Otherwise, it will generate a new internal node number and plus the total node counter by 1
 	
 	:param label: External node name, a string
 	:param node_dim: How many nodes the circuit current have

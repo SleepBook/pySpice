@@ -9,10 +9,13 @@ import pdb
 
 def solve():
 	"""
-	Top Level Encapsuation of the Utilities to Determine the Circuit's State
+	Top Level Encapsulation of the Utilities to Determine the Circuit's State
 
 	:Return:
-		output(watchpoint_data) is a 3-D array, if assume the three coordinate of this array to be output[z][x][y]. Then each slices of z direction represent the output of either DC/AC/TRAN analysis. Within each Z frame, the X represent the watchlist item which is parsed in parsing phase and the x values is the values solved in each iteration. 
+		+ watchpoint_data: A 3-D array (illustrated in the figure below), if assume the three coordinate of this array to be output[z][x][y]. Then each slices of z direction represents the output of either DC/AC/TRAN analysis. Within each Z frame, the X direction represent the watchlist item which is parsed in parsing phase and the Y direction contains the values solved in each iteration. 
+	
+	.. figure:: ../figures/solver_output.png
+
 	"""
 	
 	watchpoint_data = {}
@@ -33,11 +36,11 @@ def solve():
 
 def single_solve(analysis_instance):
 	"""
-	Sub-Utility of Solve Function, Perform the Perform on a Single Analysis Type
+	Sub-Utility to *Solve* Function, Solving the States for a Single Analysis Type
 	
 	:param analysis_instance: internal data structure representing the analysis commands
 	:return:
-		A single frame of the output structure illustracted in figure x.x
+		A single frame of the output structure illustracted in the figure below
 
 	"""
 	#attention, here raise an critical question about python, that's whether the paramenter 

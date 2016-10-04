@@ -167,7 +167,7 @@ def parse_element(raw_line, node_dim, branch_dim):
 	
 def parse_timefunc(string):
 	"""
-	Parsing time-varient source into respect class
+	Parsing time-varient source into internal representation
 
 	In transient analysis, stimulates may take the form like PULSE, SIN, etc.This sub-utility to *parseline* function extract these part into designed data structures.
 
@@ -226,7 +226,7 @@ def parse_ctrl(raw_line):
 	"""
 	Parsing Control Command in SPICE
 
-	:param raw_line: a string represent a control command(start with a dot)describe in Netlist
+	:param raw_line: a string represent a control command (start with a dot) describe in Netlist
 	:return: 
 		Modify the *SETTING_LIST*, *ANALYSIS_LSIT*, *PRINT_DICT* in global_data 
 	"""
