@@ -1,0 +1,276 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pySpice.parser package &mdash; pySpice 0.01 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.01',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pySpice 0.01 documentation" href="index.html" />
+    <link rel="up" title="pySpice package" href="pySpice.html" />
+    <link rel="next" title="pySpice.solver package" href="pySpice.solver.html" />
+    <link rel="prev" title="pySpice package" href="pySpice.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pyspice-parser-package">
+<h1>pySpice.parser package<a class="headerlink" href="#pyspice-parser-package" title="Permalink to this headline">¶</a></h1>
+<p>The functions in this package work to extract informations from the SPICE Netlist and store them in internal defined structures. They also collect necessary information for Solver Package&#8217;s usage</p>
+<p>The result of these phase is stored as global varibales in pySpice.global_data module. And will be used through out the whole program</p>
+<div class="section" id="module-pySpice.parser.parser">
+<span id="pyspice-parser-parser-module"></span><h2>pySpice.parser.parser module<a class="headerlink" href="#module-pySpice.parser.parser" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pySpice.parser.parser.parser">
+<code class="descclassname">pySpice.parser.parser.</code><code class="descname">parser</code><span class="sig-paren">(</span><em>netlist</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/parser/parser.html#parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.parser.parser.parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Top-Level Capsulation for Parsing Utilities</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><em>element_DICT</em>: A dictionary containing the structure instance representing the circuit elements. With the element&#8217;s name as index</li>
+<li><em>ANALYSIS_LIST</em>: List containing the instance for analysis comands</li>
+<li><em>SETTING_LIST</em>: List of instance for setting commands</li>
+<li><em>PRINT_DICT</em>: PRINT/PLOT command are parsed specially into special-designed structures, the instance of these structures are put into this dictionary. The dictionary has three items, with index of <em>dc</em>, <em>ac</em> and <em>tran</em> resepctively. Each item&#8217;s value is a list of the print/plot instances</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pySpice.parser.parseline">
+<span id="pyspice-parser-parseline-module"></span><h2>pySpice.parser.parseline module<a class="headerlink" href="#module-pySpice.parser.parseline" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pySpice.parser.parseline.parse_ctrl">
+<code class="descclassname">pySpice.parser.parseline.</code><code class="descname">parse_ctrl</code><span class="sig-paren">(</span><em>raw_line</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/parser/parseline.html#parse_ctrl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.parser.parseline.parse_ctrl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parsing Control Command in SPICE</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>raw_line</strong> &#8211; a string represent a control command(start with a dot)describe in Netlist</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Modify the <em>SETTING_LIST</em>, <em>ANALYSIS_LSIT</em>, <em>PRINT_DICT</em> in global_data</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pySpice.parser.parseline.parse_element">
+<code class="descclassname">pySpice.parser.parseline.</code><code class="descname">parse_element</code><span class="sig-paren">(</span><em>raw_line</em>, <em>node_dim</em>, <em>branch_dim</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/parser/parseline.html#parse_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.parser.parseline.parse_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a Circuit Element</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>raw_line</strong> &#8211; a string represent a element describe in Netlist</li>
+<li><strong>node_dim</strong> &#8211; The upper layer of this function retains a state counting how many node this circuit have. This value is passed into this function and here it decide whether to modify it or not basing on if encounter new nodes</li>
+<li><strong>branch_dim</strong> &#8211; similar to node_dim, the variabel counting how many linkages should appear in the matrix</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li>node_dim</li>
+<li>branch_dim</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pySpice.parser.parseline.parse_timefunc">
+<code class="descclassname">pySpice.parser.parseline.</code><code class="descname">parse_timefunc</code><span class="sig-paren">(</span><em>string</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/parser/parseline.html#parse_timefunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.parser.parseline.parse_timefunc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parsing time-varient source into respect class</p>
+<p>In transient analysis, stimulates may take the form like PULSE, SIN, etc.This sub-utility to <em>parseline</em> function extract these part into designed data structures.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>string</strong> &#8211; a slice of the element string like: &#8220;SIN(-1 1 1M)&#8221;</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a instance of the respctive data structure.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pySpice.parser.internalize">
+<span id="pyspice-parser-internalize-module"></span><h2>pySpice.parser.internalize module<a class="headerlink" href="#module-pySpice.parser.internalize" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pySpice.parser.internalize.internalize">
+<code class="descclassname">pySpice.parser.internalize.</code><code class="descname">internalize</code><span class="sig-paren">(</span><em>node_dim</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/parser/internalize.html#internalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.parser.internalize.internalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert External Node Name to Internal Node Name</p>
+<p>While parsing element, the practice of documenting the total node number actually has an implicit functionality to convert the node name used by Netlist into internal representations of continuious integers, which will make it much easier to generate the matrix representing the circuit in solver phase. Essentially, thses integers are the row and coloum represent that node in the matrix.</p>
+<p>However, in parsing, we count node and branch(links between nodes) seperately, but in matrix they are processed as a whole. So in these function we modify the number to give them a uniformed sequence.</p>
+<p>By the way, since we already got the information about the PRINT/PLOT commands, at this stage we also take notes of which nodes/branch&#8217;s states are required to output the final analysis. Then we only document the states of these points in the solver phase to reduce intermediate data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node_dim</strong> &#8211; the total node number of the circuit</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Will modify the branch number to form an uniform sequence with node_dim. This will modify the ELEMENT_DICT and add content for the watch_list in global data</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pySpice.parser.utils">
+<span id="pyspice-parser-utils-module"></span><h2>pySpice.parser.utils module<a class="headerlink" href="#module-pySpice.parser.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pySpice.parser.utils.address_transform">
+<code class="descclassname">pySpice.parser.utils.</code><code class="descname">address_transform</code><span class="sig-paren">(</span><em>label</em>, <em>node_dim</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/parser/utils.html#address_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.parser.utils.address_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform External Node Name into Internal Node Representation</p>
+<p>Basicly, it check whether the label has already assigned an internal, if so, just return this internal representation. Otherwise, generate a new internal node number and plus the total node_number by 1</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>label</strong> &#8211; External node name, a string</li>
+<li><strong>node_dim</strong> &#8211; How many nodes the circuit current have</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The previous node_dim and current node_dim</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pySpice.parser.utils.dec_generator">
+<code class="descclassname">pySpice.parser.utils.</code><code class="descname">dec_generator</code><span class="sig-paren">(</span><em>start</em>, <em>stop</em>, <em>step</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/parser/utils.html#dec_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.parser.utils.dec_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a python generator based on the parameter. This generator will output data with decimal interval</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pySpice.parser.utils.extract">
+<code class="descclassname">pySpice.parser.utils.</code><code class="descname">extract</code><span class="sig-paren">(</span><em>unit_value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/parser/utils.html#extract"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.parser.utils.extract" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extrace Spice Format Value</p>
+<p>The number used in Netlist often have a postfix unit, this function extrace this representation.
+:param unit_value: value represent in SPICE Netlist fashion
+:return: value in scientific representation</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pySpice.parser.utils.linear_generator">
+<code class="descclassname">pySpice.parser.utils.</code><code class="descname">linear_generator</code><span class="sig-paren">(</span><em>start</em>, <em>stop</em>, <em>step</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/parser/utils.html#linear_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.parser.utils.linear_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a python generator based on the parameter. This generator will output data with linear interval</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pySpice.parser.utils.oct_generator">
+<code class="descclassname">pySpice.parser.utils.</code><code class="descname">oct_generator</code><span class="sig-paren">(</span><em>start</em>, <em>stop</em>, <em>step</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pySpice/parser/utils.html#oct_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pySpice.parser.utils.oct_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a python generator based on the parameter. This generator will output data with octoal interval</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">pySpice.parser package</a><ul>
+<li><a class="reference internal" href="#module-pySpice.parser.parser">pySpice.parser.parser module</a></li>
+<li><a class="reference internal" href="#module-pySpice.parser.parseline">pySpice.parser.parseline module</a></li>
+<li><a class="reference internal" href="#module-pySpice.parser.internalize">pySpice.parser.internalize module</a></li>
+<li><a class="reference internal" href="#module-pySpice.parser.utils">pySpice.parser.utils module</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">pySpice</a><ul>
+  <li><a href="pySpice.html">pySpice package</a><ul>
+      <li>Previous: <a href="pySpice.html" title="previous chapter">pySpice package</a></li>
+      <li>Next: <a href="pySpice.solver.html" title="next chapter">pySpice.solver package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pySpice.parser.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Wenqi Yin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/pySpice.parser.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

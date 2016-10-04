@@ -5,7 +5,13 @@ import pdb
 
 def format(sample, filename):
 	"""
-	Generate output text file through the raw watchlist data"""
+	Generate Text Output
+
+	:param sample: the output of the solve function, a python dictionary containing the status of the point apperaed on watch_list
+	:param filename: a string specify the output filename
+	:return: will write a text file containing the result for the analysis. The format illustrate itself best through an example.
+
+	"""
 	f = open(filename, 'w')
 	f.write('*'*30)
 	f.write('\n')
@@ -64,7 +70,15 @@ def format(sample, filename):
 
 def data_provider(analysis_type, cmd_list, watch_list, sample):
 	"""
-	Convert internal watch_list data into output print cmd data
+	Generating the Data for PRINT/PLOT Commands Using the Raw Data of the Status of the Points/Branches to watch_list
+
+	Also it re-arrange the data layout. So in the finally output, the first line is the sweep item. Following lines begins with the Print/Plot item's name and then it's values in consecutive sweep points.
+
+	:param analysis_type: either 'ac' 'dc' or 'tran'
+	:param cmd_list: a list containing  the print/plot items for this analysis
+	:param watch_list: the watch_list, stating which points/branches are of interest
+	:param sample: the output of solve() function
+	:return: an list *output* containing the information for the values of the item appeared in the PRINT/PLOT commands.
 	"""
 	output = []
 	if analysis_type == 'dc' or analysis_type == 'tran':

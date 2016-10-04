@@ -2,6 +2,14 @@ import matplotlib.pyplot as plt
 import pdb
 
 def plot(filename):
+	"""
+	Top Level Encapsulation of the Plotting Utility
+
+	This module takes input from the text output of the format() function. So this can be seen is extension to the program, used to visualize the analysis result.
+
+	:param filename: a string of the filename of the text report
+	:output: several windows, each has the plot for a single kind of analysis
+	"""
 	f = open(filename,'r')
 	filelines = f.readlines()
 	f.close()
@@ -18,7 +26,7 @@ def plot(filename):
 
 def analysis_plot(section):
 	"""
-	current can only plot all into one graph
+	Sub-Routine to Plot() Function, Plot the Graphs for a Single Kind of Analysis
 	"""
 	analysis_type = section[1]
 	if analysis_type == 'OPERATING POINT\n':

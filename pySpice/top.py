@@ -6,6 +6,12 @@ from pySpice.exhibitor.formator import *
 import pySpice.global_data
 
 def solve_circuit(infile,outfile):
+	"""
+	Top Encapsulation of the Program
+
+	:param infile: string specify the netlist's name
+	:param outfile: string specify the text report's name
+	"""
 	reload(pySpice.global_data)
 	parser(infile)
 	sample = solve()

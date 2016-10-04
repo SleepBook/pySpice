@@ -1,4 +1,17 @@
+"""
+These classes works more like C Structure. It stores the information of the circuit element or SPICE commands into its different fields.
+"""
+
 class ele_2port():
+	"""
+	Base class for most dual-port circuit elements
+
+	:member:
+		+ catagory: describing what kind of device this instance belong to
+		+ loc_p: Positive port in internal representation(an integer)
+		+ branch_flag: whether this element need a variable to represent the current throught it.
+	"""
+
 	def __init__(self,catagory,name,loc_p,loc_n,value):
 		self.catagory = catagory
 		self.name = name
@@ -17,6 +30,10 @@ class capacitor(ele_2port):
 		ele_2port.__init__(self, *av)
 
 class inductor(ele_2port):
+	"""
+	:member:
+		+ branch: the internal variable represent the current throught it
+	"""
 	def __init__(self, branch_num, *av):
 		ele_2port.__init__(self, *av)
 		self.branch = branch_num
@@ -83,6 +100,11 @@ class mos():
 		self.branch_flag = 0
 
 class pulse_src():
+	""" 
+	The meaning of these fields refer to this graph:
+
+	.. figure:: ../figures/SPICE_pulse.png
+	"""
 	def __init__(self, vgnd, vdd, td, tr, tf, pw, per):
 		self.catagory = 'pulse'
 		self.vdd = vdd
@@ -114,6 +136,10 @@ class stair_src():
 
 #below are the class for analysis cmds
 class analysis_dc():
+	"""
+	:member:
+		+ swp_src: the value of the sweep points are put into a generator
+	"""
 	def __init__(self, swp_src, generator):
 		self.catagory = 'dc'
 		self.swp_src = swp_src
@@ -137,14 +163,32 @@ class analysis_tran():
 		self.max_step = 0
 
 class print_item():
+	"""
+	The PRINT/PLOT commands are parsed to the instance of this class
+
+	:member:
+		+ cmd: the original string describing the plot/print
+		+ ac_flag: whether it's an AC plot, because the print/plot command to AC need special process(they have another character noting to plot magnitude, phase or anything else
+		+ op_flag: some plot need to calculate the difference between two nodes. If so, this flag is setted.
+		+ op_list: document which two nodes need to do opeeration on
+	"""
 	def __init__(self,cmd):
 		self.cmd = cmd
 		self.ac_flag = 0
 		self.op_flag = 0
 		self.op_list = []
 
-#used in the solving engine
 class sweep_item():
+	"""
+	The standard information package the stamp function pass to the engine module. Control the behavior of the engine
+
+	:member:
+		+ switch: a string either of 'gen' or 'upd'. If 'gen' it tells the engine in each iteration the new stamp value come from a generator. Otherwise, the value get its update from the solution of previous iteration
+		+ coord: where the new stamp fit in
+		+ generator: the generator to offer the new value
+		+ updata_src: the coordinate where to retrieve the updata value
+	"""
+
 	def __init__(self, switch, coord):
 		self.switch = switch
 		self.coord = coord

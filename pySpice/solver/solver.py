@@ -1,4 +1,3 @@
-#This is the top module of the solver utility
 from pySpice.element_class import *
 from pySpice.solver.stamp import *
 from pySpice.solver.engine import *
@@ -10,10 +9,11 @@ import pdb
 
 def solve():
 	"""
-	top level of solving circuit matrix utility
+	Top Level Encapsuation of the Utilities to Determine the Circuit's State
 
-	output is a high-dimension array, each component is the watch_list sampling
-	of each analysis"""
+	:Return:
+		output(watchpoint_data) is a 3-D array, if assume the three coordinate of this array to be output[z][x][y]. Then each slices of z direction represent the output of either DC/AC/TRAN analysis. Within each Z frame, the X represent the watchlist item which is parsed in parsing phase and the x values is the values solved in each iteration. 
+	"""
 	
 	watchpoint_data = {}
 	if 1 not in pySpice.global_data.ANALYSIS_LIST:
@@ -29,7 +29,17 @@ def solve():
 			watchpoint_data[instance.catagory] = output
 	return watchpoint_data
 
+
+
 def single_solve(analysis_instance):
+	"""
+	Sub-Utility of Solve Function, Perform the Perform on a Single Analysis Type
+	
+	:param analysis_instance: internal data structure representing the analysis commands
+	:return:
+		A single frame of the output structure illustracted in figure x.x
+
+	"""
 	#attention, here raise an critical question about python, that's whether the paramenter 
 	#to a function is address-transfor or copy-transfor
 	#actually the answer is either, and it depends on the data_type

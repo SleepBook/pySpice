@@ -6,8 +6,17 @@ import math
 import pdb
 
 def parse_element(raw_line, node_dim, branch_dim):
-	'''docstring
 	'''
+    Parse a Circuit Element
+
+    :param raw_line: a string represent a element describe in Netlist
+    :param node_dim: The upper layer of this function retains a state counting how many node this circuit have. This value is passed into this function and here it decide whether to modify it or not basing on if encounter new nodes
+    :param branch_dim: similar to node_dim, the variabel counting how many linkages should appear in the matrix
+    :return: 
+        + node_dim
+        + branch_dim
+	'''
+
 	line = raw_line.strip().lower().split()
 
 	if line[0][0] == 'r':
@@ -157,6 +166,17 @@ def parse_element(raw_line, node_dim, branch_dim):
 
 	
 def parse_timefunc(string):
+	"""
+	Parsing time-varient source into respect class
+
+	In transient analysis, stimulates may take the form like PULSE, SIN, etc.This sub-utility to *parseline* function extract these part into designed data structures.
+
+	:param string: a slice of the element string like: "SIN(-1 1 1M)"
+    
+	:return: a instance of the respctive data structure.
+    
+	"""
+
 	if re.match('pulse',string) != None:
 		string = string[5:]
 		temp = string.find('(')
@@ -203,8 +223,12 @@ def parse_timefunc(string):
 			
 
 def parse_ctrl(raw_line):
-	"""Parse Dot Cmds
-	#to do
+	"""
+	Parsing Control Command in SPICE
+
+	:param raw_line: a string represent a control command(start with a dot)describe in Netlist
+	:return: 
+		Modify the *SETTING_LIST*, *ANALYSIS_LSIT*, *PRINT_DICT* in global_data 
 	"""
 
 	line = raw_line.strip().lower().split()

@@ -19,8 +19,11 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath('../../pySpice'))
-sys.path.insert(0, os.path.abspath('../../bin'))
+sys.path.insert(0, os.path.abspath('../../'))
+#sys.path.insert(0, os.path.abspath('../../pySpice/parser'))
+#sys.path.insert(0, os.path.abspath('../../pySpice/solver'))
+#sys.path.insert(0, os.path.abspath('../../pySpice/exhibitor'))
+#sys.path.insert(0, os.path.abspath('../../bin'))
 
 # -- General configuration ------------------------------------------------
 

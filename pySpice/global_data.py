@@ -1,4 +1,16 @@
-"""Global Used Data Structure"""
+"""
+Global Data Structure
+
+This Structure will be used all over the program, so I set them as global data structure. The part above the pound key dividing line is the structure container of the internal representation of the circuit. Below the dividing line is some parameter regarding the MOSFET, DIODE parameters
+
+:MNA_dim: the dimension of the MNA matrix
+:ELEMENT_DICT: a python dictionary containing the instances of the circuit elements, with their name as index
+:SETTING_LIST: list containing the setting commands of SPICE
+:ANALYSIS_LIST: list comtaining the analysis commands, which are parsed into special designed class instance
+:PRINT_DICT: PRINT/PLOT commands in SPICE are parsed specially as the instance of the print_item class. These instances are put into respective list of this dictionary.
+:watch_list: A list log the name(interanl) of the nodes/branches of intereset.
+:INIT_STATE: This list is used to override the result of the .OP command if .IC command is specified.
+"""
 MNA_dim = 0
 
 ELEMENT_DICT = {}

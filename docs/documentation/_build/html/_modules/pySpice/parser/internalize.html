@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pySpice.parser.internalize &mdash; pySpice 0.01 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.01',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pySpice 0.01 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pySpice.parser.internalize</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pySpice.global_data</span>
+
+<div class="viewcode-block" id="internalize"><a class="viewcode-back" href="../../../pySpice.parser.html#pySpice.parser.internalize.internalize">[docs]</a><span class="k">def</span> <span class="nf">internalize</span><span class="p">(</span><span class="n">node_dim</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Convert External Node Name to Internal Node Name</span>
+
+<span class="sd">    While parsing element, the practice of documenting the total node number actually has an implicit functionality to convert the node name used by Netlist into internal representations of continuious integers, which will make it much easier to generate the matrix representing the circuit in solver phase. Essentially, thses integers are the row and coloum represent that node in the matrix. </span>
+
+<span class="sd">    However, in parsing, we count node and branch(links between nodes) seperately, but in matrix they are processed as a whole. So in these function we modify the number to give them a uniformed sequence. </span>
+
+<span class="sd">    By the way, since we already got the information about the PRINT/PLOT commands, at this stage we also take notes of which nodes/branch&#39;s states are required to output the final analysis. Then we only document the states of these points in the solver phase to reduce intermediate data.</span>
+
+<span class="sd">    :param node_dim: the total node number of the circuit</span>
+
+<span class="sd">    :return:  </span>
+<span class="sd">        Will modify the branch number to form an uniform sequence with node_dim. This will modify the ELEMENT_DICT and add content for the watch_list in global data</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">ELEMENT_DICT</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+		<span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">branch_flag</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="n">item</span><span class="o">.</span><span class="n">branch</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">branch</span> <span class="o">+</span> <span class="n">node_dim</span>
+			<span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">NODE_TRANSLATION</span><span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">branch</span>
+			<span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">catagory</span> <span class="o">==</span> <span class="s1">&#39;h&#39;</span><span class="p">:</span>
+				<span class="n">item</span><span class="o">.</span><span class="n">loc_ctrl_branch</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">loc_ctrl_branch</span> <span class="o">+</span> <span class="n">node_dim</span>		
+
+	<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">PRINT_DICT</span><span class="p">[</span><span class="s1">&#39;dc&#39;</span><span class="p">]:</span>
+		<span class="k">for</span> <span class="n">num</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">op_list</span><span class="p">):</span>
+			<span class="n">check_point</span> <span class="o">=</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">NODE_TRANSLATION</span><span class="p">[</span><span class="n">point</span><span class="p">]</span>
+			<span class="n">item</span><span class="o">.</span><span class="n">op_list</span><span class="p">[</span><span class="n">num</span><span class="p">]</span> <span class="o">=</span> <span class="n">check_point</span>
+			<span class="k">if</span> <span class="n">check_point</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">watch_list</span><span class="p">[</span><span class="s1">&#39;dc&#39;</span><span class="p">]:</span>
+				<span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">watch_list</span><span class="p">[</span><span class="s1">&#39;dc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">check_point</span><span class="p">)</span>
+
+	<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">PRINT_DICT</span><span class="p">[</span><span class="s1">&#39;tran&#39;</span><span class="p">]:</span>
+		<span class="k">for</span> <span class="n">num</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">op_list</span><span class="p">):</span>
+			<span class="n">check_point</span> <span class="o">=</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">NODE_TRANSLATION</span><span class="p">[</span><span class="n">point</span><span class="p">]</span>
+			<span class="n">item</span><span class="o">.</span><span class="n">op_list</span><span class="p">[</span><span class="n">num</span><span class="p">]</span> <span class="o">=</span> <span class="n">check_point</span>
+			<span class="k">if</span> <span class="n">check_point</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">watch_list</span><span class="p">[</span><span class="s1">&#39;tran&#39;</span><span class="p">]:</span>
+				<span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">watch_list</span><span class="p">[</span><span class="s1">&#39;tran&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">check_point</span><span class="p">)</span>
+
+	<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">PRINT_DICT</span><span class="p">[</span><span class="s1">&#39;ac&#39;</span><span class="p">]:</span>
+		<span class="k">for</span> <span class="n">num</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">op_list</span><span class="p">):</span>
+			<span class="n">check_point</span> <span class="o">=</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">NODE_TRANSLATION</span><span class="p">[</span><span class="n">point</span><span class="p">]</span>
+			<span class="n">item</span><span class="o">.</span><span class="n">op_list</span><span class="p">[</span><span class="n">num</span><span class="p">]</span> <span class="o">=</span> <span class="n">check_point</span>
+			<span class="k">if</span> <span class="n">check_point</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">watch_list</span><span class="p">[</span><span class="s1">&#39;ac&#39;</span><span class="p">]:</span>
+				<span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">watch_list</span><span class="p">[</span><span class="s1">&#39;ac&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">check_point</span><span class="p">)</span></div>
+
+	
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Wenqi Yin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

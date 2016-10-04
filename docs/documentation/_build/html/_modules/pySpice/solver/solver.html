@@ -1,0 +1,171 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pySpice.solver.solver &mdash; pySpice 0.01 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.01',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pySpice 0.01 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pySpice.solver.solver</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">pySpice.element_class</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">pySpice.solver.stamp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">pySpice.solver.engine</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">tee</span>
+<span class="kn">import</span> <span class="nn">pySpice.global_data</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">pdb</span>
+
+<div class="viewcode-block" id="solve"><a class="viewcode-back" href="../../../pySpice.solver.html#pySpice.solver.solver.solve">[docs]</a><span class="k">def</span> <span class="nf">solve</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Top Level Encapsuation of the Utilities to Determine the Circuit&#39;s State</span>
+
+<span class="sd">	:Return:</span>
+<span class="sd">		output(watchpoint_data) is a 3-D array, if assume the three coordinate of this array to be output[z][x][y]. Then each slices of z direction represent the output of either DC/AC/TRAN analysis. Within each Z frame, the X represent the watchlist item which is parsed in parsing phase and the x values is the values solved in each iteration. </span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="n">watchpoint_data</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="k">if</span> <span class="mi">1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">ANALYSIS_LIST</span><span class="p">:</span>
+		<span class="k">print</span> <span class="s1">&#39;WARNING op not found in the netlist, doing OP automatically&#39;</span>
+	<span class="n">initial_state</span> <span class="o">=</span> <span class="n">single_solve</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+	<span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">INIT_STATE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">initial_state</span><span class="p">)</span>
+
+	<span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">ANALYSIS_LIST</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">instance</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="k">continue</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">output</span> <span class="o">=</span> <span class="n">single_solve</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
+			<span class="n">watchpoint_data</span><span class="p">[</span><span class="n">instance</span><span class="o">.</span><span class="n">catagory</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span>
+	<span class="k">return</span> <span class="n">watchpoint_data</span></div>
+
+
+
+<div class="viewcode-block" id="single_solve"><a class="viewcode-back" href="../../../pySpice.solver.html#pySpice.solver.solver.single_solve">[docs]</a><span class="k">def</span> <span class="nf">single_solve</span><span class="p">(</span><span class="n">analysis_instance</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Sub-Utility of Solve Function, Perform the Perform on a Single Analysis Type</span>
+<span class="sd">	</span>
+<span class="sd">	:param analysis_instance: internal data structure representing the analysis commands</span>
+<span class="sd">	:return:</span>
+<span class="sd">		A single frame of the output structure illustracted in figure x.x</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="c1">#attention, here raise an critical question about python, that&#39;s whether the paramenter </span>
+	<span class="c1">#to a function is address-transfor or copy-transfor</span>
+	<span class="c1">#actually the answer is either, and it depends on the data_type</span>
+	<span class="c1">#in python, data has no type(actually it&#39;s all pointer to the heap), so, if the object the dataname </span>
+	<span class="c1">#point to is immutable, then pass it as an parameter will simply create new copy of this data, </span>
+	<span class="c1">#and this will behave like value-pass</span>
+	<span class="c1">#if the data is muttable, however, then it will simpliy pass the link and this behave like address-pass</span>
+
+	<span class="c1">#here, np.ndarray is mutable</span>
+	<span class="k">if</span> <span class="n">analysis_instance</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+		<span class="n">analysis_type</span> <span class="o">=</span> <span class="s1">&#39;op&#39;</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">analysis_type</span> <span class="o">=</span> <span class="n">analysis_instance</span><span class="o">.</span><span class="n">catagory</span>
+	
+	<span class="k">if</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;ac&#39;</span><span class="p">:</span>		
+		<span class="n">MNA</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">MNA_dim</span><span class="p">,</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">MNA_dim</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">)</span>
+		<span class="n">RHS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">MNA_dim</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">)</span>
+		<span class="n">ANS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">MNA_dim</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">MNA</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">MNA_dim</span><span class="p">,</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">MNA_dim</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+		<span class="n">RHS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">MNA_dim</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+		<span class="n">ANS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">MNA_dim</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+
+	<span class="n">sweep_flag</span><span class="p">,</span> <span class="n">sweep_list</span><span class="p">,</span> <span class="n">converge_flag</span><span class="p">,</span> <span class="n">converge_list</span> <span class="o">=</span> <span class="n">stamp</span><span class="p">(</span><span class="n">analysis_type</span><span class="p">,</span> <span class="n">analysis_instance</span><span class="p">,</span> <span class="n">MNA</span><span class="p">,</span> <span class="n">RHS</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;op&#39;</span><span class="p">:</span>
+		<span class="n">raw_output</span> <span class="o">=</span> <span class="n">solve_engine</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[],</span> <span class="n">converge_flag</span><span class="p">,</span> <span class="n">converge_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">MNA</span><span class="p">,</span> <span class="n">RHS</span><span class="p">,</span> <span class="n">ANS</span><span class="p">)</span>
+	<span class="k">elif</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;ac&#39;</span><span class="p">:</span>
+		<span class="n">raw_output</span> <span class="o">=</span> <span class="n">solve_engine</span><span class="p">(</span><span class="n">sweep_flag</span><span class="p">,</span> <span class="n">sweep_list</span><span class="p">,</span> <span class="n">converge_flag</span><span class="p">,</span> <span class="n">converge_list</span><span class="p">,</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">watch_list</span><span class="p">[</span><span class="s1">&#39;ac&#39;</span><span class="p">],</span> <span class="n">MNA</span><span class="p">,</span> <span class="n">RHS</span><span class="p">,</span> <span class="n">ANS</span><span class="p">)</span>
+	<span class="k">elif</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;dc&#39;</span><span class="p">:</span>
+		<span class="n">raw_output</span> <span class="o">=</span> <span class="n">solve_engine</span><span class="p">(</span><span class="n">sweep_flag</span><span class="p">,</span> <span class="n">sweep_list</span><span class="p">,</span> <span class="n">converge_flag</span><span class="p">,</span> <span class="n">converge_list</span><span class="p">,</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">watch_list</span><span class="p">[</span><span class="s1">&#39;dc&#39;</span><span class="p">],</span> <span class="n">MNA</span><span class="p">,</span> <span class="n">RHS</span><span class="p">,</span> <span class="n">ANS</span><span class="p">)</span>
+	<span class="k">elif</span> <span class="n">analysis_type</span> <span class="o">==</span> <span class="s1">&#39;tran&#39;</span><span class="p">:</span>
+		<span class="n">raw_output</span> <span class="o">=</span> <span class="n">solve_engine</span><span class="p">(</span><span class="n">sweep_flag</span><span class="p">,</span> <span class="n">sweep_list</span><span class="p">,</span> <span class="n">converge_flag</span><span class="p">,</span> <span class="n">converge_list</span><span class="p">,</span> <span class="n">pySpice</span><span class="o">.</span><span class="n">global_data</span><span class="o">.</span><span class="n">watch_list</span><span class="p">[</span><span class="s1">&#39;tran&#39;</span><span class="p">],</span> <span class="n">MNA</span><span class="p">,</span> <span class="n">RHS</span><span class="p">,</span> <span class="n">ANS</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">analysis_type</span> <span class="o">!=</span> <span class="s1">&#39;op&#39;</span><span class="p">:</span>
+		<span class="n">scan_bar</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">cursor</span> <span class="ow">in</span> <span class="n">analysis_instance</span><span class="o">.</span><span class="n">generator</span><span class="p">:</span>
+			<span class="n">scan_bar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+		<span class="c1">#a bit messy, for raw_output is ndarray while scan_bar is list</span>
+		<span class="c1">#overlook for now</span>
+		<span class="n">raw_output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scan_bar</span><span class="p">)</span>
+		
+	<span class="k">return</span> <span class="n">raw_output</span></div>
+	
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Wenqi Yin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
